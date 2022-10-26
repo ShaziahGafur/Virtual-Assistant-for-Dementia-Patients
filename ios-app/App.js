@@ -7,6 +7,7 @@ import { Audio } from 'expo-av';
 import UploadImage  from './UploadImage';
 import TextToSpeech from './SpeechToText';
 import RecordAudio from './RecordAudio';
+import Apis from './Apis';
 
 const Stack = createNativeStackNavigator();
 
@@ -33,6 +34,7 @@ function HomeScreen({ navigation }) {
         style={styles.hospitalPng}
         source={require("./assets/hospital.png")}
         ></Image>
+        <Apis></Apis>
         <GooglePlayButton onPress={() => navigation.navigate('Load An Existing Profile')} style={styles.buttonStyling} backgroundColor="#06038D" text="Load An Existing Profile" textColor="#fff" rippleColor="white" />   
         <GooglePlayButton onPress={() => navigation.navigate('Create A New Profile')} outline style={styles.buttonStyling} backgroundColor="#06038D" text="Create A New Profile" textColor="#000" rippleColor="blue" />   
         <StatusBar style="auto" />

@@ -71,7 +71,7 @@ const SpeechToText = () => {
                 type: 'audio/x-wav',
                 name: 'speech2text'
             });
-            const response = await fetch(config.CLOUD_FUNCTION_URL, {
+            const response = await fetch("https://speech-to-text-sgvpv3e4za-uc.a.run.app", {
                 method: 'POST',
                 body: formData
             });
