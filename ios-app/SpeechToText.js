@@ -75,8 +75,11 @@ const SpeechToText = () => {
                 method: 'POST',
                 body: formData
             });
+            console.log("response text");
+            console.log(response.text());
             const data = await response.json();
             console.log(data);
+            console.log(response.text());
             setQuery(data.transcript);
         } catch(error) {
             console.log('There was an error reading file', error);
@@ -92,14 +95,14 @@ const SpeechToText = () => {
         if (status !== 'granted') return;
 
         setIsRecording(true);
-        await Audio.setAudioModeAsync({
-            allowsRecordingIOS: true,
-            interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
-            playsInSilentModeIOS: true,
-            shouldDuckAndroid: true,
-            interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
-            playThroughEarpieceAndroid: true,
-        });
+        // await Audio.setAudioModeAsync({
+        //     allowsRecordingIOS: true,
+        //     // interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
+        //     playsInSilentModeIOS: true,
+        //     shouldDuckAndroid: true,
+        //     interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+        //     playThroughEarpieceAndroid: true,
+        // });
         const recording = new Audio.Recording();
         console.log(recording);
         try {

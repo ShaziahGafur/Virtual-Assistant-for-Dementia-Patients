@@ -2,11 +2,25 @@ import * as React from 'react';
 import { Text, View, StyleSheet, Button } from 'react-native';
 import { Audio } from 'expo-av';
 import { setStatusBarBackgroundColor } from 'expo-status-bar';
+import * as FileSystem from 'expo-file-system';
+import axios from 'axios';
+
+// const axios = require("axios");
+
+API_KEY="AIzaSyBnBJgVDH5E0_bJ_9xzaCWIEl9JczBXRvU";
+NGROK_API = "https://cd05-184-146-153-206.ngrok.io";
 
 export default function RecordAudio() {
   const [recording, setRecording] = React.useState();
+  const [transcript, setTranscript] = React.useState("");
+  const [soundIsPlaying, setSoundIsPlaying] = React.useState(false);
+  const [recordingLocation, setRecordingLocation] = React.useState("");
+  // const [finishedRecording, setFinishedRecording] = React.useState(false);
+  
   const [sound, setSound] = React.useState();
   const [isFetching, setIsFetching] = React.useState(false);
+
+  // let recordingLocation = "";
 
   async function startRecording() {
     try {
@@ -32,6 +46,8 @@ export default function RecordAudio() {
     // setRecording(undefined);
     await recording.stopAndUnloadAsync();
     const uri = recording.getURI(); 
+    // recordingLocation = uri;
+    setRecordingLocation(uri);
     console.log('Recording stopped and stored at', uri);
   }
 
@@ -41,6 +57,7 @@ export default function RecordAudio() {
     const { sound } = await Audio.Sound.createAsync({uri: recording. getURI() || URIFROMFileSystem});
     
     setSound(sound);
+    setSoundIsPlaying(true);
     await sound.playAsync();
   }
 
@@ -49,30 +66,92 @@ export default function RecordAudio() {
     const { sound } = await Audio.Sound.createAsync( require('./assets/sounds/example.mp3')
     );
     setSound(sound);
-
+    setSoundIsPlaying(true);
     console.log('Playing Sound');
     await sound.playAsync();
   }
 
-  const getTranscription = async () => {
+  const getRecordingTranscription = async () => {
     setIsFetching(true);
     try {
         // const info = await Audio.Sound.getInfoAsync(recording.getURI());
         // console.log(`FILE INFO: ${JSON.stringify(info)}`);
-        const uri = recording.getURI();
+    //     const recording = await Audio.Sound.createAsync( require('./assets/sounds/example.mp3')
+    // );'
+    // console.log(this.recording);
+    // const info = await FileSystem.getInfoAsync(recording.getURI());
+    // console.log(`FILE INFO: ${JSON.stringify(info)}`);
+    // const uri = info.uri;
+    const uri = recording.getURI();
+        console.log(`FILE INFO: ${JSON.stringify(uri)}`);
+        // const uri = recording.getURI();
+        // console.log(uri);
         const formData = new FormData();
-        formData.append('file', {
-            uri,
-            type: 'audio/x-wav',
-            name: 'speech2text'
-        });
-        console.log(formData);
-        const response = await fetch(config.CLOUD_FUNCTION_URL, {
+        // form.append('files[]', file)
+        const file = {
+          uri,
+          type: 'audio/x-wav',
+          name: 'speech2text'
+      };
+        formData.append('files', file);
+        formData.append("woor","w")
+        let str = JSON.stringify(formData);
+        console.log(str);
+        const header = {
+          headers: { 'Content-Type': 'multipart/form-data'}
+     }
+        // console.log("formData");
+        console.log(str);
+        const response = await axios.post(NGROK_API+"/transcribe_audio",formData, {
+          headers: header,
+          method: 'POST',
+            
+            // body: {'hello':'world'}
+        },           
+        );
+        const data = response.data;
+        // console.log(data.data);
+        // console.log("data");
+        // console.log(data);
+        setTranscript(data.transcript);
+    } catch(error) {
+        console.log('There was an error reading file', error);
+        // stopRecording();
+        // resetRecording();
+    }
+    setIsFetching(false);
+}
+
+  const getSampleAudioTranscription = async () => {
+    setIsFetching(true);
+    try {
+        // const info = await Audio.Sound.getInfoAsync(recording.getURI());
+        // console.log(`FILE INFO: ${JSON.stringify(info)}`);
+    //     const recording = await Audio.Sound.createAsync( require('./assets/sounds/example.mp3')
+    // );'
+    // console.log(this.recording);
+    // const info = await FileSystem.getInfoAsync(recording.getURI());
+    // console.log(`FILE INFO: ${JSON.stringify(info)}`);
+    // const uri = info.uri;
+    // const uri = recording.getURI();
+        // const uri = recording.getURI();
+        // console.log(uri);
+        // const formData = new FormData();
+        // formData.append('file', {
+        //     uri,
+        //     type: 'audio/x-wav',
+        //     name: 'speech2text'
+        // });
+        // console.log("formData");
+        // console.log(formData);
+        const response = await fetch(NGROK_API+"/transcribe_sample_audio", {
             method: 'POST',
-            body: formData
+            // body: formData
         });
         const data = await response.json();
+        console.log("data");
         console.log(data);
+        setTranscript(data.transcript);
     } catch(error) {
         console.log('There was an error reading file', error);
         // stopRecording();
@@ -84,6 +163,7 @@ export default function RecordAudio() {
 
   async function stopPlayingRecording() {
     console.log("stop playing sound")
+    setSoundIsPlaying(false);
     sound.unloadAsync();
   }
 
@@ -98,27 +178,35 @@ export default function RecordAudio() {
 
   return (
     <View style={styles.container}>
-        <Button title={"Play Sample Sound"}
+        {/* <Button title={"Play Sample Sound"}
       onPress={playSampleSound
-    }></Button>
+    }></Button> */}
+    {
+      !recordingLocation &&
       <Button
         title={recording ? 'Stop Recording' : 'Start Recording'}
         onPress={recording ? stopRecording : startRecording}
       />
+    }
+      {
+      recording && <Text>Recording saved at: {recordingLocation}</Text>
+    }
       {recording && <Button
       title={"Play Recording"}
       onPress={playRecording
     }
     ></Button>
         }
-        {
+        
+        { soundIsPlaying && 
            <Button
             title={"Stop Playing"}
             onPress={stopPlayingRecording}>
-        
             </Button>
         }
-        <Button title={"Get Transcription"} onPress={getTranscription}></Button>
+        <Button title={"Get Sample Transcription"} onPress={getSampleAudioTranscription}></Button>
+        <Button title={"Get Recording Transcription"} onPress={getRecordingTranscription}></Button>
+        <Text>Transcription: {transcript}</Text>
     </View>
   );
 }
