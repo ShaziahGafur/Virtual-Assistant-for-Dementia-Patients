@@ -34,7 +34,7 @@ To deactivate the virtual environment: `deactivate`. The "(env)" should disappea
 
 Ngrok is for port-forwarding. Essentially when you're on the Expo Go app, the localhost on your iPad and the localhost on your computer will be different. Usually you can find the IP Address of your computer by doing `ipconfig` on Windows, and use that IP address instead but I found that didn't work on UofT wifi / my computer for some reason. Ngrok basically exposes a port on your computer to the Internet and converts it to like a web address. You can then use that web address to communicate from the front-end to back-end. 
 
-You don't really need to use Ngrok if you're running the front-end and back-end on the same machine. Eg. after running the front-end server, open the web version vs using the Expo App on your iPad.
+You don't really need to use Ngrok if you're running the front-end and back-end on the same machine. Eg. after running the front-end server, open the web version vs using the Expo App on your iPad, but I haven't tried this so idk.
 
 Ngrok only runs for 2 hours in the free version, so you'll need to re-run the cmd, and change value of "NGROK_API" to the new web address they give you every 2 hours.
 
@@ -66,7 +66,7 @@ Start the back-end app by: `flask --app main.py --debug run`. This should dynami
 
 #### 3) Run the Front End
 
-Start another terminal and go into the Virtual-Assistant .... etc folder, and run `cd ios-app`.
+Start another terminal and go into the Virtual-Assistant .... etc folder, and run `cd ios-app`. You should have 3 terminals at this point.
 
 Now, run `npm start`. You should see something nice and pretty pop up with a QR code. On your Camera app, use the QR code to open the Expo Go application, and you should see the app running. 
 
