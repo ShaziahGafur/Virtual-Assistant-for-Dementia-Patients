@@ -58,7 +58,7 @@ In a terminal, run `ngrok http 5000`. This is because 5000 is the port that the 
 
 #### 2) Run the Backend
 
-If you're currently in the Virtual-Assistant .... etc folder, run `cd ios-app/api`. (This might be \ instead sorry I'll double check this)
+Start another terminal, and leave the Ngrok one open. cd into the Virtual-Assistant ..../ios-app/api folder. (This might be \ instead sorry I'll double check this)
 
 Start the virtual environment: `env\Scripts\activate`
 
@@ -73,4 +73,4 @@ Now, run `npm start`. You should see something nice and pretty pop up with a QR 
 ---
 ### Note about communicating:
 
-For some god forsaken reason, React-Native's "fetch" doesn't work when doing POST requests with a body. You'll get the request but it'll have nothing in the body. I haven't tested if this is the same for GET or DELETE requests. Use "axios" instead. I have an example already set up in the RecordAudio.js file. 
+For some ????? reason, React-Native's "fetch" doesn't work when doing POST requests with a body. You'll get the request but it'll have nothing in the body. I haven't tested if this is the same for GET or DELETE requests. Use "axios" instead. I have an example already set up in the RecordAudio.js file. 
