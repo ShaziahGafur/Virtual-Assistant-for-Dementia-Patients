@@ -151,7 +151,7 @@ def download_media():
         # EDIT FILE PATH TO SAVE MEDIA FILES
         destination_file_name = "C:\\Users\\ellen\\Virtual-Assistant-for-Dementia-Patients\\ios-app\\api\\tmp\\media-from-bucket\\"
         destination_file_name_audio = destination_file_name+"audio_clip.mp3"
-        destination_file_name_video = destination_file_name+"video_clip.wav"
+        destination_file_name_video = destination_file_name+"video_clip.mp4"
 
         start_byte = 0 # Reading from beginning
         end_byte = 99999 # SETTING MAX SIZE FOR VIDEO & AUDIO
