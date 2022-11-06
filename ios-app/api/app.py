@@ -177,6 +177,46 @@ def download_media():
 
         # Next step: trim/pad audio file to match video length
 
+        import io
+        from mutagen.mp3 import MP3
+        from moviepy.editor import VideoFileClip
+
+        from pydub import AudioSegment
+        from pydub.playback import play
+
+        audio = MP3(destination_file_name_audio)
+        audio_duration = audio.info.length
+
+        clip = VideoFileClip(destination_file_name_video)
+        video_duration = clip.duration
+
+        difference = video_duration - audio_duration # difference in seconds
+        difference = difference * 1000 # convert to milliseconds
+        difference = int(difference)
+
+        audio_out_file = "C:\\Users\\shazi\\Documents\\Real_Skule\\Year 5 - Last Year and I'm Out\\Class\\Capstone - ECE496\\Code\\temp\\Prompt 1 edited.mp3"
+
+        #read mp3 file to an audio segment
+        song = AudioSegment.from_mp3(destination_file_name_audio)
+
+        if (difference < 0): # audio clip is larger than video clip! Trim audio
+            final_song = song[:(difference)]
+            final_song.export(audio_out_file, format="mp3")
+
+        elif (difference > 0): # Audio clip is too short! Pad clip with silence
+
+            # create silence audio segment, with length = padding_needed
+            silence_segment = AudioSegment.silent(duration=difference)  # duration in milliseconds
+
+            #Add above two audio segments    
+            final_song = song + silence_segment
+
+            #Either save modified audio
+            final_song.export(audio_out_file, format="mp3")
+
+        else:
+            song.export(audio_out_file, format="mp3")
+
     except e:
         print(e)
 
