@@ -1,8 +1,6 @@
 import * as React from 'react';
 import { Text, View, StyleSheet, Button } from 'react-native';
 import { Audio } from 'expo-av';
-import { setStatusBarBackgroundColor } from 'expo-status-bar';
-import * as FileSystem from 'expo-file-system';
 import axios from 'axios';
 import {NGROK_API} from '@env'
 
