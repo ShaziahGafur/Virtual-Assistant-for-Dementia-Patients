@@ -4,11 +4,14 @@ import { Audio } from 'expo-av';
 import { setStatusBarBackgroundColor } from 'expo-status-bar';
 import * as FileSystem from 'expo-file-system';
 import axios from 'axios';
+import {NGROK_API} from '@env'
+
+// import Config from 'react-native-config';
+
+// const NGROK_API = "https://b9f8-24-156-175-176.ngrok.io";
+console.log(NGROK_API);
 
 // const axios = require("axios");
-
-API_KEY="AIzaSyBnBJgVDH5E0_bJ_9xzaCWIEl9JczBXRvU";
-NGROK_API = "https://cd05-184-146-153-206.ngrok.io";
 
 export default function RecordAudio() {
   const [recording, setRecording] = React.useState();
@@ -102,7 +105,8 @@ export default function RecordAudio() {
      }
         // console.log("formData");
         console.log(str);
-        const response = await axios.post(NGROK_API+"/transcribe_audio",formData, {
+        // Config.NGROK_API
+        const response = await axios.post(+"/transcribe_audio",formData, {
           headers: header,
           method: 'POST',
             
@@ -144,7 +148,7 @@ export default function RecordAudio() {
         // });
         // console.log("formData");
         // console.log(formData);
-        const response = await fetch(NGROK_API+"/transcribe_sample_audio", {
+        const response = await fetch(Config.NGROK_API+"/transcribe_sample_audio", {
             method: 'POST',
             // body: formData
         });
