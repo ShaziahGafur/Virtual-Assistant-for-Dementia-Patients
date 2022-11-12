@@ -6,24 +6,14 @@ import * as FileSystem from 'expo-file-system';
 import axios from 'axios';
 import {NGROK_API} from '@env'
 
-// import Config from 'react-native-config';
-
-// const NGROK_API = "https://b9f8-24-156-175-176.ngrok.io";
-console.log(NGROK_API);
-
-// const axios = require("axios");
-
 export default function RecordAudio() {
   const [recording, setRecording] = React.useState();
   const [transcript, setTranscript] = React.useState("");
   const [soundIsPlaying, setSoundIsPlaying] = React.useState(false);
   const [recordingLocation, setRecordingLocation] = React.useState("");
-  // const [finishedRecording, setFinishedRecording] = React.useState(false);
   
   const [sound, setSound] = React.useState();
   const [isFetching, setIsFetching] = React.useState(false);
-
-  // let recordingLocation = "";
 
   async function startRecording() {
     try {
@@ -46,10 +36,8 @@ export default function RecordAudio() {
 
   async function stopRecording() {
     console.log('Stopping recording..');
-    // setRecording(undefined);
     await recording.stopAndUnloadAsync();
     const uri = recording.getURI(); 
-    // recordingLocation = uri;
     setRecordingLocation(uri);
     console.log('Recording stopped and stored at', uri);
   }
@@ -77,51 +65,30 @@ export default function RecordAudio() {
   const getRecordingTranscription = async () => {
     setIsFetching(true);
     try {
-        // const info = await Audio.Sound.getInfoAsync(recording.getURI());
-        // console.log(`FILE INFO: ${JSON.stringify(info)}`);
-    //     const recording = await Audio.Sound.createAsync( require('./assets/sounds/example.mp3')
-    // );'
-    // console.log(this.recording);
-    // const info = await FileSystem.getInfoAsync(recording.getURI());
-    // console.log(`FILE INFO: ${JSON.stringify(info)}`);
-    // const uri = info.uri;
+ 
     const uri = recording.getURI();
         console.log(`FILE INFO: ${JSON.stringify(uri)}`);
-        // const uri = recording.getURI();
-        // console.log(uri);
         const formData = new FormData();
-        // form.append('files[]', file)
         const file = {
           uri,
           type: 'audio/x-wav',
           name: 'speech2text'
       };
         formData.append('files', file);
-        formData.append("woor","w")
         let str = JSON.stringify(formData);
         console.log(str);
         const header = {
           headers: { 'Content-Type': 'multipart/form-data'}
      }
-        // console.log("formData");
-        console.log(str);
-        // Config.NGROK_API
-        const response = await axios.post(+"/transcribe_audio",formData, {
+        const response = await axios.post(NGROK_API+"/transcribe_audio",formData, {
           headers: header,
           method: 'POST',
-            
-            // body: {'hello':'world'}
         },           
         );
         const data = response.data;
-        // console.log(data.data);
-        // console.log("data");
-        // console.log(data);
         setTranscript(data.transcript);
     } catch(error) {
         console.log('There was an error reading file', error);
-        // stopRecording();
-        // resetRecording();
     }
     setIsFetching(false);
 }
@@ -129,37 +96,14 @@ export default function RecordAudio() {
   const getSampleAudioTranscription = async () => {
     setIsFetching(true);
     try {
-        // const info = await Audio.Sound.getInfoAsync(recording.getURI());
-        // console.log(`FILE INFO: ${JSON.stringify(info)}`);
-    //     const recording = await Audio.Sound.createAsync( require('./assets/sounds/example.mp3')
-    // );'
-    // console.log(this.recording);
-    // const info = await FileSystem.getInfoAsync(recording.getURI());
-    // console.log(`FILE INFO: ${JSON.stringify(info)}`);
-    // const uri = info.uri;
-    // const uri = recording.getURI();
-        // const uri = recording.getURI();
-        // console.log(uri);
-        // const formData = new FormData();
-        // formData.append('file', {
-        //     uri,
-        //     type: 'audio/x-wav',
-        //     name: 'speech2text'
-        // });
-        // console.log("formData");
-        // console.log(formData);
-        const response = await fetch(Config.NGROK_API+"/transcribe_sample_audio", {
+
+        const response = await fetch(NGROK_API+"/transcribe_sample_audio", {
             method: 'POST',
-            // body: formData
         });
         const data = await response.json();
-        console.log("data");
-        console.log(data);
         setTranscript(data.transcript);
     } catch(error) {
         console.log('There was an error reading file', error);
-        // stopRecording();
-        // resetRecording();
     }
     setIsFetching(false);
 }
