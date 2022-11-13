@@ -102,7 +102,7 @@ def transcribe_audio():
         print(e)
     return {"transcript": result.alternatives[0].transcript}
 
-# Database stuff below -- put this in another file later
+# (TODO) Database stuff below -- put this in another file later
 from flask import render_template
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Integer, Column, ForeignKey
@@ -115,7 +115,7 @@ def clean_sql_output(res):
     return result
 
 def get_all_patients():
-    # find a way to make the first two lines able to be taken out, it'll throw a wrong thread error otherwise
+    # (TODO) find a way to make the first two lines able to be taken out, it'll throw a wrong thread error otherwise
     con = sqlite3.connect(DATABASE)
     cur = con.cursor()
 
@@ -125,23 +125,31 @@ def get_all_patients():
 
     return result
 
+# (TODO) Add error checking
 def insert_a_patient(request):
     con = sqlite3.connect(DATABASE)
     cur = con.cursor()
+    patient_info = request.get_json()
 
-    # parse first name and last name
+    first_name = patient_info["firstName"]
+    last_name = patient_info["lastName"]
+    if patient_info["hospitalID"]:
+        hospital_ID = patient_info["hospitalID"]
+        sql_input = (first_name, last_name, hospital_ID)
+        res = cur.execute("INSERT INTO Patients(FirstName, LastName, HospitalPatientID) VALUES (?,?,?)", sql_input)
+    else:
+        sql_input = (first_name, last_name)
+        res = cur.execute("INSERT INTO Patients(FirstName, LastName) VALUES (?,?)", sql_input)
+    con.commit()
+    return {"result":"Success"}
 
-    res = cur.execute("SELECT * FROM Patients")
-
-    result = clean_sql_output(res)
-
-    return result
-
+# (TODO) Need to add delete and modify but later 
 @app.route("/db/patients", methods=["GET","POST"])
 def patients():
     if request.method == "GET":
         return get_all_patients()
     elif request.method == "POST":
+        print("post!")
         return insert_a_patient(request)
 
 def get_all_favourite_persons():

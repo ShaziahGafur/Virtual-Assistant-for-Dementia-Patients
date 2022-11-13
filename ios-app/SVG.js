@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as React from "react";
 import Svg, {
   Defs,
   LinearGradient,
@@ -7,7 +7,7 @@ import Svg, {
   Path,
   Circle,
   G,
-} from "react-native-svg"
+} from "react-native-svg";
 /* SVGR has dropped some elements not supported by react-native-svg: title */
 
 const SvgComponent = (props) => (
@@ -425,6 +425,6 @@ const SvgComponent = (props) => (
       fill="#6c63ff"
     />
   </Svg>
-)
+);
 
-export default SvgComponent
+export default SvgComponent;
