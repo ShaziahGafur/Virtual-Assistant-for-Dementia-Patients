@@ -66,3 +66,20 @@ Now, run `npm start`. You should see something nice and pretty pop up with a QR 
 ### Note about communicating:
 
 For some ????? reason, React-Native's "fetch" doesn't work when doing POST requests with a body. You'll get the request but it'll have nothing in the body. I haven't tested if this is the same for GET or DELETE requests. Use "axios" instead. I have an example already set up in the RecordAudio.js file. 
+
+---
+### Old Notes on Ngrok which we may need for deploying to PROD
+
+Installation:
+
+choco install ngrok
+
+Ngrok is for port-forwarding. Essentially when you're on the Expo Go app, the localhost on your iPad and the localhost on your computer will be different. Usually you can find the IP Address of your computer by doing ipconfig on Windows, and use that IP address instead but I found that didn't work on UofT wifi / my computer for some reason. Ngrok basically exposes a port on your computer to the Internet and converts it to like a web address. You can then use that web address to communicate from the front-end to back-end.
+
+You don't really need to use Ngrok if you're running the front-end and back-end on the same machine. Eg. after running the front-end server, open the web version vs using the Expo App on your iPad, but I haven't tried this so idk.
+
+Ngrok only runs for 2 hours in the free version, so you'll need to re-run the cmd, and change value of "NGROK_API" to the new web address they give you every 2 hours.
+
+Running Ngrok:
+
+In a terminal, run ngrok http 5000. This is because 5000 is the port that the backend will run from. Copy the ".io" address that the response gives you, and then paste that into the constant "NGROK_API" on the Front-End.
