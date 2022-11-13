@@ -1,7 +1,7 @@
 import time
 from flask import Flask, request
 from flask_cors import CORS, cross_origin
-from config import GOOGLE_APPLICATION_CREDENTIALS, BUCKET_NAME
+from config import *
 
 # Imports the Google Cloud client library
 from google.cloud import speech
@@ -101,3 +101,40 @@ def transcribe_audio():
     except e:
         print(e)
     return {"transcript": result.alternatives[0].transcript}
+
+# Database stuff below -- put this in another file later
+from flask import render_template
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Integer, Column, ForeignKey
+import sqlite3
+
+# Returns the result as a dict with the column names
+def clean_sql_output(res):
+    columns = res.description 
+    result = [{columns[index][0]:column for index, column in enumerate(value)} for value in res.fetchall()]
+    return result
+
+@app.route("/db/patients")
+def select_all_patients():
+    # find a way to make the first two lines able to be taken out, it'll throw a wrong thread error otherwise
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+
+    res = cur.execute("SELECT * FROM Patients")
+
+    result = clean_sql_output(res)
+   
+    # print("Total number of schools is", Patients.query.count())
+    return result
+
+@app.route("/db/favouritepersons")
+def select_all_favourite_persons():
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+
+    res = cur.execute("SELECT * FROM FavouritePersons")
+
+    result = clean_sql_output(res)
+   
+    # print("Total number of schools is", Patients.query.count())
+    return result
