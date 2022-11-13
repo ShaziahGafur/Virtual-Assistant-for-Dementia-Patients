@@ -86,20 +86,6 @@ function LoadExistingProfile({ navigation }) {
   return (
     <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
       <PatientSelect></PatientSelect>
-      {/* <GooglePlayButton
-        style={styles.buttonStyling2}
-        text="Patient 1"
-        backgroundColor="#06038D"
-        textColor="#fff"
-        rippleColor="white"
-      />
-      <GooglePlayButton
-        style={styles.buttonStyling2}
-        text="Patient 2"
-        backgroundColor="#06038D"
-        textColor="#fff"
-        rippleColor="white"
-      /> */}
     </View>
   );
 }
