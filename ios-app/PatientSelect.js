@@ -3,6 +3,7 @@ import { StyleSheet, View } from "react-native";
 import { BACKEND_API } from "@env";
 import { GooglePlayButton } from "@freakycoder/react-native-button";
 import axios from "axios";
+console.log(BACKEND_API);
 
 const fetchData = async () => {
   const header = {

@@ -95,7 +95,7 @@ def transcribe_audio():
         )
 
         response = client.recognize(config=config, audio=audio)
-
+        print(response)
         for result in response.results:
             print("Transcript: {}".format(result))
     except e:
