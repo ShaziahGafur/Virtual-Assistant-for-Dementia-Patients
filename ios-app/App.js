@@ -8,6 +8,7 @@ import CreateNewPatientProfile from "./CreatePatientProfile";
 import SpeechToText from "./SpeechToText";
 import RecordAudio from "./RecordAudio";
 import PatientSelect from "./PatientSelect";
+import Dialogue from "./Dialogue";
 import Apis from "./Apis";
 
 const Stack = createNativeStackNavigator();
@@ -38,6 +39,7 @@ const App = () => {
           name="Create A Favourite Person Profile"
           component={CreateProfile}
         />
+        <Stack.Screen name="Dialogue" component={Dialogue} />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -57,6 +59,13 @@ function HomeScreen({ navigation }) {
         onPress={() => navigation.navigate("Record Sound")}
         backgroundColor="#06038D"
         text="Record Sound"
+        textColor="#fff"
+        rippleColor="white"
+      />
+      <GooglePlayButton
+        onPress={() => navigation.navigate("Dialogue")}
+        backgroundColor="#06038D"
+        text="Dialogue"
         textColor="#fff"
         rippleColor="white"
       />

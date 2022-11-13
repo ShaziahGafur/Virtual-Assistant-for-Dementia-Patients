@@ -14,6 +14,7 @@ import { AntDesign } from "@expo/vector-icons";
 import { GooglePlayButton } from "@freakycoder/react-native-button";
 import { BACKEND_API } from "@env";
 import axios from "axios";
+console.log(BACKEND_API);
 
 export default function CreatePatientProfile() {
   const [patientFirstName, setPatientFirstName] = React.useState(null);
