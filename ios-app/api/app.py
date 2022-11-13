@@ -279,7 +279,9 @@ def get_response(answers, prompts, match_questions, p_input):
       download_media(answer)
       response = response + answer + " "
   
-  response = response + random.choice(prompts)
+  prompt = random.choice(prompts)
+  download_media(prompt)
+  response = response + prompt
   
   return response
 
