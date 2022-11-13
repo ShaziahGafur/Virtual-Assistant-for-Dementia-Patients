@@ -114,8 +114,7 @@ def clean_sql_output(res):
     result = [{columns[index][0]:column for index, column in enumerate(value)} for value in res.fetchall()]
     return result
 
-@app.route("/db/patients")
-def select_all_patients():
+def get_all_patients():
     # find a way to make the first two lines able to be taken out, it'll throw a wrong thread error otherwise
     con = sqlite3.connect(DATABASE)
     cur = con.cursor()
@@ -123,12 +122,29 @@ def select_all_patients():
     res = cur.execute("SELECT * FROM Patients")
 
     result = clean_sql_output(res)
-   
-    # print("Total number of schools is", Patients.query.count())
+
     return result
 
-@app.route("/db/favouritepersons")
-def select_all_favourite_persons():
+def insert_a_patient(request):
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+
+    # parse first name and last name
+
+    res = cur.execute("SELECT * FROM Patients")
+
+    result = clean_sql_output(res)
+
+    return result
+
+@app.route("/db/patients", methods=["GET","POST"])
+def patients():
+    if request.method == "GET":
+        return get_all_patients()
+    elif request.method == "POST":
+        return insert_a_patient(request)
+
+def get_all_favourite_persons():
     con = sqlite3.connect(DATABASE)
     cur = con.cursor()
 
@@ -136,5 +152,25 @@ def select_all_favourite_persons():
 
     result = clean_sql_output(res)
    
-    # print("Total number of schools is", Patients.query.count())
     return result
+
+def insert_a_favourite_person(request):
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+
+    # parse first name and last name
+    # parse the photo and audio recordings
+    # upload those to the google cloud bucket in a new folder
+
+    res = cur.execute("SELECT * FROM Patients")
+
+    result = clean_sql_output(res)
+
+    return result
+
+@app.route("/db/favouritepersons", methods=["GET","POST"])
+def favourite_persons():
+    if request.method == "GET":
+        return get_all_favourite_persons()
+    elif request.method == "POST":
+        return insert_a_favourite_person(request)

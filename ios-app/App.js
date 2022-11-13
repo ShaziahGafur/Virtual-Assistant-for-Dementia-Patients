@@ -3,8 +3,8 @@ import { StyleSheet, Text, View, Alert, Image } from 'react-native';
 import { Button, GooglePlayButton } from "@freakycoder/react-native-button";
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Audio } from 'expo-av';
-import UploadImage  from './UploadImage';
+import CreateProfile  from './CreateProfile';
+import CreateNewPatientProfile  from './CreatePatientProfile';
 import SpeechToText from './SpeechToText';
 import RecordAudio from './RecordAudio';
 import Apis from './Apis';
@@ -20,6 +20,8 @@ const App = () => {
         <Stack.Screen name="Load An Existing Profile" component={LoadExistingProfile} />
         <Stack.Screen name="Create A New Profile" component={CreateNewProfile} />
         <Stack.Screen name="Record Sound" component={RecordAudio} />
+        <Stack.Screen name="Create A Patient Profile" component={CreateNewPatientProfile} />
+        <Stack.Screen name="Create A Favourite Person Profile" component={CreateProfile} />
       </Stack.Navigator>
       
     </NavigationContainer>
@@ -62,7 +64,10 @@ function CreateNewProfile({ navigation }) {
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       {/* <SpeechToText></SpeechToText> */}
       {/* <Text>Create New Profile</Text> */}
-      <UploadImage></UploadImage>
+      {/* <CreateProfile></CreateProfile> */}
+      <GooglePlayButton style={styles.buttonStyling2} onPress={() => navigation.navigate('Create A Favourite Person Profile')} text="Create a Favourite Person Profile"  backgroundColor="#06038D" textColor="#fff" rippleColor="white" />   
+      <GooglePlayButton style={styles.buttonStyling2} onPress={() => navigation.navigate('Create A Patient Profile')} text="Create a Patient Profile"  backgroundColor="#06038D" textColor="#fff" rippleColor="white" />   
+    
 
     </View>
   );

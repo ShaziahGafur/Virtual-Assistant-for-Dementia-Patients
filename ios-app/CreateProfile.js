@@ -6,7 +6,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { GooglePlayButton } from "@freakycoder/react-native-button";
 import * as ImagePicker from 'expo-image-picker';
 
-export default function UploadImage() {
+export default function CreateProfile() {
   const [image, setImage] = useState(null);
   const addImage = async () => {
     let _image = await ImagePicker.launchImageLibraryAsync({
@@ -20,30 +20,29 @@ export default function UploadImage() {
     setImage(_image.uri);
   }
   };
-  const [text, onChangeText] = React.useState(null);
-  const [text_ID, onChangeText_ID] = React.useState(null);
-  const [FP_name, onChangeFP_name] = React.useState(null);
+  const [patient, setPatient] = React.useState(null);
+  const [firstNameFP, setFirstNameFP] = React.useState(null);
+  const [lastNameFP, setLastNameFP] = React.useState(null);
 
   return (
-  <View >
-    {/* <Text>Create A New Profile</Text> */}
-    <Text style={styles.subtitleText}>PATIENT NAME</Text>
+  <View style={styles.formContainer}>
+    <Text style={styles.subtitleText}>PATIENT SEARCH</Text>
     <TextInput
         style={styles.input}
-        onChangeText={onChangeText}
-        value={text}
+        onChangeText={setPatient}
+        value={patient}
       />
-    <Text style={styles.subtitleText}>PATIENT ID</Text>
+    <Text style={styles.subtitleText}>FAMILIAR PERSON'S FIRST NAME</Text>
     <TextInput
         style={styles.input}
-        onChangeText={onChangeText_ID}
-        value={text_ID}
+        onChangeText={setFirstNameFP}
+        value={firstNameFP}
       />
-    <Text style={styles.subtitleText}>FAMILIAR PERSON'S NAME</Text>
+  <Text style={styles.subtitleText}>FAMILIAR PERSON'S LAST NAME</Text>
     <TextInput
         style={styles.input}
-        onChangeText={onChangeFP_name}
-        value={FP_name}
+        onChangeText={setLastNameFP}
+        value={lastNameFP}
       />
     <Text style={styles.subtitleText}>ADD PHOTOS</Text>
           <View style={imageUploaderStyles.container}>
@@ -101,6 +100,12 @@ const styles = StyleSheet.create({
       backgroundColor: '#fff',
       alignItems: 'center',
       paddingTop:'10%',
+    },
+    formContainer:{
+      flex: 1, 
+      justifyContent: 'center',
+      paddingLeft: '2%',
+      paddingRight: '2%'
     },
     titleText:{
       fontSize:60,

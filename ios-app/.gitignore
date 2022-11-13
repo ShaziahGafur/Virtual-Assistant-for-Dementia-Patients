@@ -11,6 +11,7 @@ npm-debug.*
 web-build/
 venv
 __pycache__
+app_db.sql
 
 # macOS
 .DS_Store
