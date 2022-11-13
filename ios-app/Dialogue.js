@@ -116,7 +116,7 @@ export default function Dialogue() {
         headers: { "Content-Type": "multipart/form-data" },
       };
       const response = await axios.post(
-        BACKEND_API + "/transcribe_audio",
+        BACKEND_API + "/generate_decision",
         formData,
         {
           headers: header,
