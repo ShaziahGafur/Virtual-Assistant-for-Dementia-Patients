@@ -132,24 +132,23 @@ def download_media():
     import io
 
     try:
-        # NEED TO DO: get key for bucket 'familiar-person-data'
         bucket_name = "familiar-person-data" 
-        # REPLACE KEY
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r'C:\Users\ellen\Downloads\indigo-replica-365820-a02e63c8d4a5.json'
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r"C:\Users\shazi\Documents\Real_Skule\Year 5 - Last Year and I'm Out\Class\Capstone - ECE496\Code\indigo-replica-365820-ec8b71722599.json"
 
         storage_client = storage.Client()
+
         bucket = storage_client.bucket(bucket_name)
 
         # Set path to download audio file from
-        source_blob_name_audio = 'Patients/'+str(patientID)+'/Familiar Person/'+str(FPID)+"/Audio/Prompt "+str(prompt)
+        source_blob_name_audio = 'Patients/'+str(patientID)+'/Familiar Person/'+str(FPID)+"/Audio/Prompt "+str(prompt)+".mp3"
         blob_audio = bucket.blob(source_blob_name_audio)
 
         # Set path to download video file from
-        source_blob_name_video = 'Patients/'+str(patientID)+'/Familiar Person/'+str(FPID)+"/Video/Prompt "+str(prompt)
+        source_blob_name_video = 'Patients/'+str(patientID)+'/Familiar Person/'+str(FPID)+"/Videos/Prompt "+str(prompt)+".mp4"
         blob_video = bucket.blob(source_blob_name_video)
 
         # EDIT FILE PATH TO SAVE MEDIA FILES
-        destination_file_name = "C:\\Users\\ellen\\Virtual-Assistant-for-Dementia-Patients\\ios-app\\api\\tmp\\media-from-bucket\\"
+        destination_file_name = "C:\\Users\\shazi\\Documents\\Real_Skule\\Year 5 - Last Year and I'm Out\\Class\\Capstone - ECE496\\Code\\temp\\media-from-bucket\\"
         destination_file_name_audio = destination_file_name+"audio_clip.mp3"
         destination_file_name_video = destination_file_name+"video_clip.mp4"
 
@@ -159,65 +158,61 @@ def download_media():
         # Downloading video and audio clips from bucket
         blob_audio.download_to_filename(destination_file_name_audio, start=0, end=end_byte)
 
-        print("Downloaded bytes {} to {} of audio object {} from bucket {} to local file {}.".format(
+        print("\n[SUCCESS] Downloaded bytes {} to {} of audio object {} from bucket {} to local file {}.".format(
             start_byte, end_byte, source_blob_name_audio, bucket_name, destination_file_name_audio
         ))
 
         blob_video.download_to_filename(destination_file_name_video, start=0, end=end_byte)
 
-        print("Downloaded bytes {} to {} of video object {} from bucket {} to local file {}.".format(
+        print("\n[SUCCESS] Downloaded bytes {} to {} of video object {} from bucket {} to local file {}.".format(
             start_byte, end_byte, source_blob_name_video, bucket_name, destination_file_name_video
         ))
 
-        with io.open(destination_file_name_audio, "rb") as audio_file:
-            audio_content = audio_file.read()
-
-        with io.open(destination_file_name_video, "rb") as video_file:
-            video_content = video_file.read()
-
-        # Next step: trim/pad audio file to match video length
-
-        import io
-        from mutagen.mp3 import MP3
-        from moviepy.editor import VideoFileClip
-
-        from pydub import AudioSegment
-        from pydub.playback import play
-
-        audio = MP3(destination_file_name_audio)
-        audio_duration = audio.info.length
-
-        clip = VideoFileClip(destination_file_name_video)
-        video_duration = clip.duration
-
-        difference = video_duration - audio_duration # difference in seconds
-        difference = difference * 1000 # convert to milliseconds
-        difference = int(difference)
-
-        audio_out_file = "C:\\Users\\shazi\\Documents\\Real_Skule\\Year 5 - Last Year and I'm Out\\Class\\Capstone - ECE496\\Code\\temp\\Prompt 1 edited.mp3"
-
-        #read mp3 file to an audio segment
-        song = AudioSegment.from_mp3(destination_file_name_audio)
-
-        if (difference < 0): # audio clip is larger than video clip! Trim audio
-            final_song = song[:(difference)]
-            final_song.export(audio_out_file, format="mp3")
-
-        elif (difference > 0): # Audio clip is too short! Pad clip with silence
-
-            # create silence audio segment, with length = padding_needed
-            silence_segment = AudioSegment.silent(duration=difference)  # duration in milliseconds
-
-            #Add above two audio segments    
-            final_song = song + silence_segment
-
-            #Either save modified audio
-            final_song.export(audio_out_file, format="mp3")
-
-        else:
-            song.export(audio_out_file, format="mp3")
-
-    except e:
+    except Exception as e: 
+        print("[ERROR]: Could not download media files from bucket.\n")
         print(e)
+
+    # Next step: trim/pad audio file to match video length
+
+    import io
+    from mutagen.mp3 import MP3
+    from moviepy.editor import VideoFileClip
+
+    from pydub import AudioSegment
+    from pydub.playback import play
+
+    audio = MP3(destination_file_name_audio)
+    audio_duration = audio.info.length
+
+
+    clip = VideoFileClip(destination_file_name_video)
+    video_duration = clip.duration
+
+    difference = video_duration - audio_duration # difference in seconds
+    difference = difference * 1000 # convert to milliseconds
+    difference = int(difference)
+
+    audio_out_file = destination_file_name_audio
+
+    # read mp3 file to an audio segment
+    song = AudioSegment.from_mp3(destination_file_name_audio)
+
+    if (difference < 0): # Audio clip is larger than video clip! Trim audio
+        final_song = song[:(difference)]
+        final_song.export(audio_out_file, format="mp3")
+
+    elif (difference > 0): # Audio clip is too short! Pad clip with silence
+
+        # create silence audio segment, with length = padding_needed
+        silence_segment = AudioSegment.silent(duration=difference)  # duration in milliseconds
+
+        #Add above two audio segments    
+        final_song = song + silence_segment
+
+        #Either save modified audio
+        final_song.export(audio_out_file, format="mp3")
+
+    else:
+        song.export(audio_out_file, format="mp3")
 
     return
