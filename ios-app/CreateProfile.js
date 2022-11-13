@@ -16,6 +16,13 @@ import * as ImagePicker from "expo-image-picker";
 
 export default function CreateProfile() {
   const [image, setImage] = useState(null);
+
+  const [patient, setPatient] = React.useState(null);
+  const [firstNameFP, setFirstNameFP] = React.useState(null);
+  const [lastNameFP, setLastNameFP] = React.useState(null);
+
+  const [formSubmitted, setFormSubmitted] = React.useState(false);
+
   const addImage = async () => {
     let _image = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -28,56 +35,134 @@ export default function CreateProfile() {
       setImage(_image.uri);
     }
   };
-  const [patient, setPatient] = React.useState(null);
-  const [firstNameFP, setFirstNameFP] = React.useState(null);
-  const [lastNameFP, setLastNameFP] = React.useState(null);
 
-  return (
-    <View style={styles.formContainer}>
-      <Text style={styles.subtitleText}>PATIENT SEARCH</Text>
-      <TextInput
-        style={styles.input}
-        onChangeText={setPatient}
-        value={patient}
-      />
-      <Text style={styles.subtitleText}>FAMILIAR PERSON'S FIRST NAME</Text>
-      <TextInput
-        style={styles.input}
-        onChangeText={setFirstNameFP}
-        value={firstNameFP}
-      />
-      <Text style={styles.subtitleText}>FAMILIAR PERSON'S LAST NAME</Text>
-      <TextInput
-        style={styles.input}
-        onChangeText={setLastNameFP}
-        value={lastNameFP}
-      />
-      <Text style={styles.subtitleText}>ADD PHOTOS</Text>
-      <View style={imageUploaderStyles.container}>
-        {image && (
-          <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />
-        )}
-        <View style={imageUploaderStyles.uploadBtnContainer}>
-          <TouchableOpacity
-            onPress={addImage}
-            style={imageUploaderStyles.uploadBtn}
-          >
-            <Text style={imageUploaderStyles.uploadImageText}>
-              {image ? "Edit" : "Upload"} Image
-            </Text>
-            <AntDesign name="camera" size={20} color="black" />
-          </TouchableOpacity>
+  const onSubmit = async () => {
+    // const header = {
+    //   headers: { "Content-Type": "application/json" },
+    // };
+    // const body = {
+    //   firstName: patientFirstName,
+    //   lastName: patientLastName,
+    //   hospitalID: patientHospitalID,
+    // };
+    // const response = await axios.post(
+    //   BACKEND_API + "/db/favouritepersons",
+    //   body,
+    //   {
+    //     headers: header,
+    //     method: "POST",
+    //   }
+    // );
+    // const data = response.data;
+    // if (data["result"] == "Success") {
+    //   console.log("in success!!");
+    //   // setFormSubmitted(true);
+    // }
+  };
+
+  if (formSubmitted == false) {
+    return (
+      <View style={styles.formContainer}>
+        <Text style={styles.subtitleText}>PATIENT SEARCH</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={setPatient}
+          value={patient}
+        />
+        <Text style={styles.subtitleText}>FAMILIAR PERSON'S FIRST NAME</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={setFirstNameFP}
+          value={firstNameFP}
+        />
+        <Text style={styles.subtitleText}>FAMILIAR PERSON'S LAST NAME</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={setLastNameFP}
+          value={lastNameFP}
+        />
+        <Text style={styles.subtitleText}>ADD PHOTOS</Text>
+        <View style={imageUploaderStyles.container}>
+          {image && (
+            <Image
+              source={{ uri: image }}
+              style={{ width: 200, height: 200 }}
+            />
+          )}
+          <View style={imageUploaderStyles.uploadBtnContainer}>
+            <TouchableOpacity
+              onPress={addImage}
+              style={imageUploaderStyles.uploadBtn}
+            >
+              <Text style={imageUploaderStyles.uploadImageText}>
+                {image ? "Edit" : "Upload"} Image
+              </Text>
+              <AntDesign name="camera" size={20} color="black" />
+            </TouchableOpacity>
+          </View>
         </View>
+        <GooglePlayButton
+          style={styles.buttonStyling}
+          backgroundColor="#06038D"
+          text="Submit"
+          textColor="#fff"
+          rippleColor="white"
+          onPress={() => onSubmit()}
+        />
       </View>
-      <GooglePlayButton
-        style={styles.buttonStyling}
-        backgroundColor="#06038D"
-        text="Submit"
-        textColor="#fff"
-        rippleColor="white"
-      />
-    </View>
-  );
+    );
+  } else {
+    return (
+      <View style={styles.formContainer}>
+        <Text style={styles.subtitleText}>PATIENT SEARCH</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={setPatient}
+          value={patient}
+        />
+        <Text style={styles.subtitleText}>FAMILIAR PERSON'S FIRST NAME</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={setFirstNameFP}
+          value={firstNameFP}
+        />
+        <Text style={styles.subtitleText}>FAMILIAR PERSON'S LAST NAME</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={setLastNameFP}
+          value={lastNameFP}
+        />
+        <Text style={styles.subtitleText}>ADD PHOTOS</Text>
+        <View style={imageUploaderStyles.container}>
+          {image && (
+            <Image
+              source={{ uri: image }}
+              style={{ width: 200, height: 200 }}
+            />
+          )}
+          <View style={imageUploaderStyles.uploadBtnContainer}>
+            <TouchableOpacity
+              onPress={addImage}
+              style={imageUploaderStyles.uploadBtn}
+            >
+              <Text style={imageUploaderStyles.uploadImageText}>
+                {image ? "Edit" : "Upload"} Image
+              </Text>
+              <AntDesign name="camera" size={20} color="black" />
+            </TouchableOpacity>
+          </View>
+        </View>
+        <GooglePlayButton
+          style={styles.buttonStyling}
+          backgroundColor="#06038D"
+          text="Submit"
+          textColor="#fff"
+          rippleColor="white"
+          onPress={() => onSubmit()}
+        />
+      </View>
+    );
+  }
 }
 const imageUploaderStyles = StyleSheet.create({
   container: {
