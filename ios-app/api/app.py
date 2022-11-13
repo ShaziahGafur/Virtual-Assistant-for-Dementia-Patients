@@ -3,6 +3,13 @@ from flask import Flask, request
 from flask_cors import CORS, cross_origin
 from config import *
 
+import io
+from mutagen.mp3 import MP3
+from moviepy.editor import VideoFileClip
+
+from pydub import AudioSegment
+from pydub.playback import play
+
 # Imports the Google Cloud client library
 from google.cloud import speech
 from google.cloud import storage
@@ -111,26 +118,19 @@ def transcribe_audio(request):
     except e:
         print(e)
         
-     return {"Transcript": transcript}
+    return {"Transcript": transcript}
 
 ### This function takes in a particular patient, FP, and conversation decision
 @app.route('/download_media', methods=["POST"])
-def download_media():
+def download_media(decision):
     
     ## Setting up dummy parameters
     patientID = 1 # ID of patient
     FPID = 1 # FP's ID for that particular patient
-    prompt = 1 # Prompt 1 was selected, i.e. "How are you doing?"
+    prompt = decision # Prompt 1 was selected, i.e. "How are you doing?"
 
-    # print(request.files)
-    # files = request.files
-    # print(files["files"])
-    # wav_file = files["files"]
-    # Imports the Google Cloud client library
-    from google.cloud import speech
-    from google.cloud import storage
-    import os
-    import io
+    # CHANGE THIS
+    prompt = 1
 
     try:
         bucket_name = "familiar-person-data" 
@@ -174,13 +174,6 @@ def download_media():
         print(e)
 
     # Next step: trim/pad audio file to match video length
-
-    import io
-    from mutagen.mp3 import MP3
-    from moviepy.editor import VideoFileClip
-
-    from pydub import AudioSegment
-    from pydub.playback import play
 
     audio = MP3(destination_file_name_audio)
     audio_duration = audio.info.length
@@ -282,7 +275,9 @@ def get_response(answers, prompts, match_questions, p_input):
   for phrase in phrases:
     question = find_matching_question(match_questions, phrase)
     if question in answers:
-      response = response + random.choice(answers[question]) + " "
+      answer = random.choice(answers[question])
+      download_media(answer)
+      response = response + answer + " "
   
   response = response + random.choice(prompts)
   
