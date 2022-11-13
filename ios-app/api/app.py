@@ -134,7 +134,7 @@ def download_media(decision):
 
     try:
         bucket_name = "familiar-person-data" 
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r"C:\Users\shazi\Documents\Real_Skule\Year 5 - Last Year and I'm Out\Class\Capstone - ECE496\Code\indigo-replica-365820-ec8b71722599.json"
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_APPLICATION_CREDENTIALS
 
         storage_client = storage.Client()
 
@@ -149,7 +149,7 @@ def download_media(decision):
         blob_video = bucket.blob(source_blob_name_video)
 
         # EDIT FILE PATH TO SAVE MEDIA FILES
-        destination_file_name = "C:\\Users\\shazi\\Documents\\Real_Skule\\Year 5 - Last Year and I'm Out\\Class\\Capstone - ECE496\\Code\\temp\\media-from-bucket\\"
+        destination_file_name = "tmp\\media_from_bucket\\"
         destination_file_name_audio = destination_file_name+"audio_clip.mp3"
         destination_file_name_video = destination_file_name+"video_clip.mp4"
 
