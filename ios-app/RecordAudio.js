@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Text, View, StyleSheet, Button } from 'react-native';
 import { Audio } from 'expo-av';
 import axios from 'axios';
-import {NGROK_API} from '@env'
+import {BACKEND_API} from '@env'
 
 export default function RecordAudio() {
   const [recording, setRecording] = React.useState();
@@ -78,7 +78,7 @@ export default function RecordAudio() {
         const header = {
           headers: { 'Content-Type': 'multipart/form-data'}
      }
-        const response = await axios.post(NGROK_API+"/transcribe_audio",formData, {
+        const response = await axios.post(BACKEND_API+"/transcribe_audio",formData, {
           headers: header,
           method: 'POST',
         },           
@@ -95,7 +95,7 @@ export default function RecordAudio() {
     setIsFetching(true);
     try {
 
-        const response = await fetch(NGROK_API+"/transcribe_sample_audio", {
+        const response = await fetch(BACKEND_API+"/transcribe_sample_audio", {
             method: 'POST',
         });
         const data = await response.json();
