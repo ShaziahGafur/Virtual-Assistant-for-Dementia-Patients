@@ -4,6 +4,7 @@ import { BACKEND_API } from "@env";
 import { Audio } from "expo-av";
 import { GooglePlayButton } from "@freakycoder/react-native-button";
 import axios from "axios";
+import PlayAudioVideo from './PlayAudioVideo';
 
 console.log(BACKEND_API);
 const recordingOptions = {
@@ -135,6 +136,7 @@ export default function Dialogue() {
   return (
     <View style={styles.container}>
       {recording && <Text>Recording</Text>}
+      {<PlayAudioVideo></PlayAudioVideo>}
       {/* { && <Text>Not Recording</Text>} */}
       {!isFetching && transcript && <Text>{transcript}</Text>}
     </View>
