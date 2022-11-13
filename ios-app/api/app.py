@@ -8,6 +8,7 @@ from google.cloud import speech
 from google.cloud import storage
 import os
 import io
+import random
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -67,11 +68,9 @@ def transcribe_sample_audio():
 @app.route('/transcribe_audio', methods=["POST"])
 def transcribe_audio(request):
     files = request.files
-    print(files)
     wav_file = files["files"]
-    print(wav_file)
-    result = ""
-    
+    transcript = ""
+
     try:
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_APPLICATION_CREDENTIALS
 
@@ -105,12 +104,13 @@ def transcribe_audio(request):
         )
 
         response = client.recognize(config=config, audio=audio)
-        print(response)
+        print(response.results)
         for result in response.results:
-            print("Transcript: {}".format(result))
+            transcript += result.alternatives[0].transcript
+            # return {"Transcript": result.alternatives[0].transcript}
     except e:
         print(e)
-    return {"Transcript": result.alternatives[0].transcript}
+    return {"Transcript": transcript}
 
 def decision_setup():
     greetings = ["Hi!",
@@ -152,10 +152,15 @@ def decision_setup():
         ('what year', 'which year'): "what year is it?",
         ('what season', 'which season'): "what season is it?"
     }
-    
-    return greetings, answers, prompts, matching_questions
 
-def find_matching_question(matching_questions, phrase):
+    match_questions = {}
+    for k, v in matching_questions.items():
+        for key in k:
+            match_questions[key] = v
+    
+    return greetings, answers, prompts, match_questions
+
+def find_matching_question(match_questions, phrase):
   question = phrase
   
   for substring in match_questions:
@@ -164,12 +169,12 @@ def find_matching_question(matching_questions, phrase):
   
   return question
 
-def get_response(answers, prompts, matching_questions, p_input):
+def get_response(answers, prompts, match_questions, p_input):
   phrases = p_input.split(". ")
   response = ""
 
   for phrase in phrases:
-    question = find_matching_question(matching_questions, phrase)
+    question = find_matching_question(match_questions, phrase)
     if question in answers:
       response = response + random.choice(answers[question]) + " "
   
@@ -180,17 +185,12 @@ def get_response(answers, prompts, matching_questions, p_input):
 @app.route('/generate_decision', methods=["POST"])
 def generate_decision():
     transcript = transcribe_audio(request)
-    print(transcript)
     return_value = {"Return":"Failure"}
     if transcript["Transcript"]:
         # call the decision functions
-        greetings, answers, prompts, matching_questions = decision_setup()
-        print(greetings, answers,prompts,matching_questions)
+        greetings, answers, prompts, match_questions = decision_setup()
         # change return_value here
-        return_value = {"Return": get_response(answers, prompts, matching_questions, transcript["Transcript"])}
-        print(return_value)
-    else:
-        # throw an error
+        return_value = {"Return": get_response(answers, prompts, match_questions, transcript["Transcript"])}
     return return_value
     
 

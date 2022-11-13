@@ -39,7 +39,7 @@ export default function Dialogue() {
   const [sound, setSound] = React.useState();
   const [isFetching, setIsFetching] = React.useState(false);
 
-  const THIRTY_S = 60000 / 2;
+  const THIRTY_S = 60000 / 6; // this was 2 before
 
   useEffect(() => {
     startAsyncRecording = async () => {
@@ -56,7 +56,7 @@ export default function Dialogue() {
 
     startAsyncRecording();
     const interval = setInterval(() => {
-      console.log("stopping recording");
+      //   console.log("stopping recording");
       stopAsyncRecording();
       asyncGetTranscription();
       const interval2 = setInterval(() => {
@@ -111,7 +111,6 @@ export default function Dialogue() {
       };
       formData.append("files", file);
       let str = JSON.stringify(formData);
-      console.log(str);
       const header = {
         headers: { "Content-Type": "multipart/form-data" },
       };
@@ -127,7 +126,6 @@ export default function Dialogue() {
       const data = response.data;
       setTranscript(data.transcript);
       console.log(transcript);
-      console.log("transcript!");
     } catch (error) {
       console.log("There was an error reading file", error);
     }
