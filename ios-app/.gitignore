@@ -12,6 +12,8 @@ web-build/
 venv
 __pycache__
 app_db.sql
+api/config.py
+.env
 
 # macOS
 .DS_Store
