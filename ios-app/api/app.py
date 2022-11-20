@@ -22,7 +22,7 @@ cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 p_name = 'Mirza'
 fp_name = 'Shaziah'
-hospital = 'North York Hospital'
+hospital = 'North York General Hospital'
 date = 'Sunday, November 13th, 2022'
 month = 'November'
 year = '2022'
@@ -128,6 +128,7 @@ def download_media(decision):
     patientID = 1 # ID of patient
     FPID = 1 # FP's ID for that particular patient
     prompt = decision[0] # Prompt 1 was selected, i.e. "How are you doing?"
+    prompt = prompt.replace('?', '')
 
     try:
         bucket_name = "familiar-person-data" 
