@@ -5,7 +5,7 @@ from config import *
 
 import io
 from mutagen.mp3 import MP3
-from moviepy.editor import VideoFileClip
+from moviepy.editor import VideoFileClip, AudioFileClip, CompositeAudioClip
 
 from pydub import AudioSegment
 from pydub.playback import play
@@ -127,10 +127,7 @@ def download_media(decision):
     ## Setting up dummy parameters
     patientID = 1 # ID of patient
     FPID = 1 # FP's ID for that particular patient
-    prompt = decision # Prompt 1 was selected, i.e. "How are you doing?"
-
-    # CHANGE THIS
-    prompt = 1
+    prompt = decision[0] # Prompt 1 was selected, i.e. "How are you doing?"
 
     try:
         bucket_name = "familiar-person-data" 
@@ -141,11 +138,11 @@ def download_media(decision):
         bucket = storage_client.bucket(bucket_name)
 
         # Set path to download audio file from
-        source_blob_name_audio = 'Patients/'+str(patientID)+'/Familiar Person/'+str(FPID)+"/Audio/Prompt "+str(prompt)+".mp3"
+        source_blob_name_audio = 'Patients/'+str(patientID)+'/Familiar Person/'+str(FPID)+"/Audio/"+str(prompt)+".mp3"
         blob_audio = bucket.blob(source_blob_name_audio)
 
         # Set path to download video file from
-        source_blob_name_video = 'Patients/'+str(patientID)+'/Familiar Person/'+str(FPID)+"/Videos/Prompt "+str(prompt)+".mp4"
+        source_blob_name_video = 'Patients/'+str(patientID)+'/Familiar Person/'+str(FPID)+"/Videos/"+str(prompt)+".mp4"
         blob_video = bucket.blob(source_blob_name_video)
 
         # EDIT FILE PATH TO SAVE MEDIA FILES
@@ -170,23 +167,54 @@ def download_media(decision):
         ))
 
     except Exception as e: 
-        print("[ERROR]: Could not download media files from bucket.\n")
-        print(e)
+        if str(e).startswith('404'):
+            print("[WARNING] Did not find file(s) in bucket! Perhaps this prompt is invalid.\n")
+            print(e)
 
-    # Next step: trim/pad audio file to match video length
+        else:
+            print("[ERROR]: Could not download media files from bucket.\n")
+            print(e)
+
+        # Play default video 
+        print("Retrieving default video & audio.\n")
+        
+        # Set path to download audio file from
+        source_blob_name_audio = 'Patients/'+str(patientID)+'/Familiar Person/'+str(FPID)+"/Audio/Default.mp3"
+        blob_audio = bucket.blob(source_blob_name_audio)
+
+        # Set path to download video file from
+        source_blob_name_video = 'Patients/'+str(patientID)+'/Familiar Person/'+str(FPID)+"/Videos/Default.mp4"
+        blob_video = bucket.blob(source_blob_name_video)
+
+        # Downloading video and audio clips from bucket
+        blob_audio.download_to_filename(destination_file_name_audio, start=0, end=end_byte)
+
+        print("\n[SUCCESS] Downloaded bytes {} to {} of DEFAULT audio object {} from bucket {} to local file {}.".format(
+            start_byte, end_byte, source_blob_name_audio, bucket_name, destination_file_name_audio
+        ))
+
+        blob_video.download_to_filename(destination_file_name_video, start=0, end=end_byte)
+
+        print("\n[SUCCESS] Downloaded bytes {} to {} of DEFAULT video object {} from bucket {} to local file {}.".format(
+            start_byte, end_byte, source_blob_name_video, bucket_name, destination_file_name_video
+        ))
+
+
+    ## Trim/pad audio file to match video length
 
     audio = MP3(destination_file_name_audio)
     audio_duration = audio.info.length
 
 
-    clip = VideoFileClip(destination_file_name_video)
-    video_duration = clip.duration
+    video_clip = VideoFileClip(destination_file_name_video)
+    video_duration = video_clip.duration
 
     difference = video_duration - audio_duration # difference in seconds
     difference = difference * 1000 # convert to milliseconds
     difference = int(difference)
 
     audio_out_file = destination_file_name_audio
+    video_out_file = destination_file_name_video
 
     # read mp3 file to an audio segment
     song = AudioSegment.from_mp3(destination_file_name_audio)
@@ -208,6 +236,14 @@ def download_media(decision):
 
     else:
         song.export(audio_out_file, format="mp3")
+
+    ## Overlay video clip with audio 
+
+    audio_clip = AudioFileClip(audio_out_file)
+
+    new_audio_clip = CompositeAudioClip([audio_clip])
+    video_clip.audio = new_audio_clip
+    video_clip.write_videofile(video_out_file)
 
     return
 
