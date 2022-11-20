@@ -134,7 +134,7 @@ export default function Dialogue() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.video}>
       {recording && <Text>Recording</Text>}
       {<PlayAudioVideo></PlayAudioVideo>}
       {/* { && <Text>Not Recording</Text>} */}
@@ -147,6 +147,14 @@ const styles = StyleSheet.create({
   container: {
     marginTop: 40,
     alignItems: "center",
+  },
+  video: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+    backgroundColor: 'black'
   },
   button: {
     backgroundColor: "#48C9B0",
