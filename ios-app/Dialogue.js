@@ -4,7 +4,7 @@ import { BACKEND_API } from "@env";
 import { Audio } from "expo-av";
 import { GooglePlayButton } from "@freakycoder/react-native-button";
 import axios from "axios";
-import PlayAudioVideo from './PlayAudioVideo';
+import PlayAudioVideo from "./PlayAudioVideo";
 
 console.log(BACKEND_API);
 const recordingOptions = {
@@ -30,6 +30,7 @@ const recordingOptions = {
 };
 
 let recording = new Audio.Recording();
+let stepOne;
 
 export default function Dialogue() {
   //   const [recording, setRecording] = React.useState();
@@ -57,17 +58,20 @@ export default function Dialogue() {
 
     startAsyncRecording();
     const interval = setInterval(() => {
-      //   console.log("stopping recording");
-      stopAsyncRecording();
-      asyncGetTranscription();
-      const interval2 = setInterval(() => {
+      if (stepOne == false || stepOne == undefined) {
+        console.log("in the step of stopping recording + get transcript");
+        stopAsyncRecording();
+        asyncGetTranscription();
+        stepOne = true;
+      } else {
+        console.log("in the step of rerecording");
         startAsyncRecording();
-      }, THIRTY_S);
+        stepOne = false;
+      }
     }, THIRTY_S);
 
     return () => {
       clearInterval(interval);
-      //   clearInterval(interval2);
     };
   }, []);
 
@@ -93,7 +97,7 @@ export default function Dialogue() {
 
   async function stopRecording() {
     console.log("Stopping recording..");
-    await recording.stopAndUnloadAsync();
+    recording.stopAndUnloadAsync();
     const uri = recording.getURI();
     setRecordingLocation(uri);
     console.log("Recording stopped and stored at", uri);
@@ -149,12 +153,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   video: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     bottom: 0,
     right: 0,
-    backgroundColor: 'black'
+    backgroundColor: "black",
   },
   button: {
     backgroundColor: "#48C9B0",

@@ -55,13 +55,13 @@ function HomeScreen({ navigation }) {
         source={require("./assets/hospital.png")}
       ></Image>
       {/* <Apis></Apis> */}
-      <GooglePlayButton
+      {/* <GooglePlayButton
         onPress={() => navigation.navigate("Record Sound")}
         backgroundColor="#06038D"
         text="Record Sound"
         textColor="#fff"
         rippleColor="white"
-      />
+      /> */}
       <GooglePlayButton
         onPress={() => navigation.navigate("Dialogue")}
         backgroundColor="#06038D"
