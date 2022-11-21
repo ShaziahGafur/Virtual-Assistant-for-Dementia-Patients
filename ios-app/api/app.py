@@ -357,6 +357,16 @@ def get_all_favourite_persons():
    
     return result
 
+def get_favourite_persons_for_patient(patientID):
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+
+    res = cur.execute("SELECT * FROM FavouritePersons where PatientID=?", (patientID,))
+
+    result = clean_sql_output(res)
+   
+    return result
+
 def insert_a_favourite_person(request):
     con = sqlite3.connect(DATABASE)
     cur = con.cursor()
@@ -374,6 +384,10 @@ def insert_a_favourite_person(request):
 @app.route("/db/favouritepersons", methods=["GET","POST"])
 def favourite_persons():
     if request.method == "GET":
-        return get_all_favourite_persons()
+        patientID = request.args.get("patientID")
+        if patientID:
+            return get_favourite_persons_for_patient(patientID)
+        else:
+            return get_all_favourite_persons()
     elif request.method == "POST":
         return insert_a_favourite_person(request)
