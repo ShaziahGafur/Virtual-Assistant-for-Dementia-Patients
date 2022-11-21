@@ -3,6 +3,8 @@ import { StyleSheet, View } from "react-native";
 import { BACKEND_API } from "@env";
 import { GooglePlayButton } from "@freakycoder/react-native-button";
 import axios from "axios";
+import FPSelect from "./FPSelect";
+
 console.log(BACKEND_API);
 
 const fetchData = async () => {
@@ -20,7 +22,7 @@ const handleClick = (data) => {
   console.log(data);
 };
 
-const PatientSelect = () => {
+const PatientSelect = ({ navigation }) => {
   const [patients, setPatients] = useState([]);
 
   getPatients = async () => {
@@ -44,7 +46,11 @@ const PatientSelect = () => {
                 text={data.FirstName + " " + data.LastName}
                 textColor="#fff"
                 rippleColor="white"
-                onPress={() => handleClick(data)}
+                onPress={() =>
+                  navigation.navigate("FP Select", {
+                    patientID: data.PatientID,
+                  })
+                }
               ></GooglePlayButton>
             </View>
           );

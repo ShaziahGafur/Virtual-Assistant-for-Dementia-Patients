@@ -1,13 +1,14 @@
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View, Alert, Image } from "react-native";
 import { Button, GooglePlayButton } from "@freakycoder/react-native-button";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, TabActions } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import CreateProfile from "./CreateProfile";
 import CreateNewPatientProfile from "./CreatePatientProfile";
 import SpeechToText from "./SpeechToText";
 import RecordAudio from "./RecordAudio";
 import PatientSelect from "./PatientSelect";
+import FPSelect from "./FPSelect";
 import Dialogue from "./Dialogue";
 import Apis from "./Apis";
 
@@ -40,6 +41,7 @@ const App = () => {
           component={CreateProfile}
         />
         <Stack.Screen name="Dialogue" component={Dialogue} />
+        <Stack.Screen name="FP Select" component={FPSelect} />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -94,7 +96,7 @@ function HomeScreen({ navigation }) {
 function LoadExistingProfile({ navigation }) {
   return (
     <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <PatientSelect></PatientSelect>
+      <PatientSelect navigation={navigation}></PatientSelect>
     </View>
   );
 }
