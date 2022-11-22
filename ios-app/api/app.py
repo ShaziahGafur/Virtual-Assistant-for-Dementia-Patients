@@ -16,6 +16,7 @@ from google.cloud import storage
 import os
 import io
 import random
+import re
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -27,6 +28,7 @@ date = 'Sunday, November 13th, 2022'
 month = 'November'
 year = '2022'
 season = 'fall'
+unused_prompts = []
 
 @app.route('/time')
 @cross_origin()
@@ -289,34 +291,40 @@ def decision_setup():
         ('what season', 'which season'): "what season is it?"
     }
 
-    match_questions = {}
+    matched_questions = {}
     for k, v in matching_questions.items():
         for key in k:
-            match_questions[key] = v
+            matched_questions[key] = v
     
-    return greetings, answers, prompts, match_questions
+    return greetings, answers, prompts, matched_questions
 
-def find_matching_question(match_questions, phrase):
+def find_matching_question(matched_questions, phrase):
   question = phrase
   
-  for substring in match_questions:
+  for substring in matched_questions:
     if substring in phrase:
-      question = match_questions[substring]
+      question = matched_questions[substring]
   
   return question
 
-def get_response(answers, prompts, match_questions, p_input):
-  phrases = p_input.split(". ")
+def get_response(answers, prompts, matched_questions, p_input):
+  global unused_prompts
+  phrases = re.split("\? |\. |\! ", p_input.lower())
   response = ""
 
   for phrase in phrases:
-    question = find_matching_question(match_questions, phrase)
+    question = find_matching_question(matched_questions, phrase)
     if question in answers:
       answer = random.choice(answers[question])
       download_media(answer)
       response = response + answer + " "
+
+  if not unused_prompts:
+    unused_prompts = prompts.copy()
   
-  prompt = random.choice(prompts)
+  prompt = random.choice(unused_prompts)
+  unused_prompts.remove(prompt)
+
   download_media(prompt)
   response = response + prompt
   
@@ -326,11 +334,14 @@ def get_response(answers, prompts, match_questions, p_input):
 def generate_decision():
     transcript = transcribe_audio(request)
     return_value = {"Return":"Failure"}
+    print("Transcript: " + transcript["Transcript"] + "\n")
+
     if transcript["Transcript"]:
         # call the decision functions
-        greetings, answers, prompts, match_questions = decision_setup()
+        greetings, answers, prompts, matched_questions = decision_setup()
         # change return_value here
-        return_value = {"Return": get_response(answers, prompts, match_questions, transcript["Transcript"])}
+        return_value = {"Return": get_response(answers, prompts, matched_questions, transcript["Transcript"])}
+        print("Chosen response:", return_value["Return"])
     return return_value
     
 
