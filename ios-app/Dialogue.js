@@ -140,7 +140,7 @@ export default function Dialogue() {
   return (
     <View style={styles.video}>
       {recording && <Text>Recording</Text>}
-      {<PlayAudioVideo></PlayAudioVideo>}
+      {<PlayAudioVideo refresh={stepOne}></PlayAudioVideo>}
       {/* { && <Text>Not Recording</Text>} */}
       {!isFetching && transcript && <Text>{transcript}</Text>}
     </View>
