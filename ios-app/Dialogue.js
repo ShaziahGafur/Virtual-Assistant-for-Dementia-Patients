@@ -7,6 +7,7 @@ import axios from "axios";
 import PlayAudioVideo from "./PlayAudioVideo";
 
 console.log(BACKEND_API);
+
 const recordingOptions = {
   // android not currently in use, but parameters are required
   android: {
@@ -72,6 +73,7 @@ export default function Dialogue() {
 
     return () => {
       clearInterval(interval);
+      recording.stopAndUnloadAsync();
     };
   }, []);
 
@@ -85,9 +87,7 @@ export default function Dialogue() {
         playsInSilentModeIOS: true,
       });
       console.log("Starting recording..");
-      await recording.prepareToRecordAsync(
-        Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
-      );
+      await recording.prepareToRecordAsync(recordingOptions);
       await recording.startAsync();
       console.log("Recording started");
     } catch (err) {

@@ -84,8 +84,8 @@ def transcribe_audio(request):
         # # Instantiates a client
         client = speech.SpeechClient()
 
-        # stored_file = "C:\\Users\\ellen\\Virtual-Assistant-for-Dementia-Patients\\ios-app\\api\\tmp\\" + wav_file.filename + ".wav"
-        stored_file = "tmp\\" + wav_file.filename + ".wav"
+        stored_file = os.getcwd() + r"/tmp/" + wav_file.filename + ".wav"
+
         wav_file.save(stored_file)
 
         audio_file_name = wav_file.filename +'.wav'
@@ -95,14 +95,15 @@ def transcribe_audio(request):
         if wav_file:
             storage_client = storage.Client()
             bucket = storage_client.bucket(bucket_name)
-            # Upload file to Google Bucket
+            # Upload file to Google Bucket (the indigo-replica-365820.appspot.com one)
             blob = bucket.blob(wav_file.filename) 
             blob.upload_from_filename(stored_file)
 
-        gcs_uri = 'gs://'+bucket_name+'/' + wav_file.filename
+        with open(stored_file, "rb") as audio_file:
+            content = audio_file.read()
 
-        audio = speech.RecognitionAudio(uri=gcs_uri)
-        print(audio)
+        ## pull from the local file on the server instead, probably will be faster
+        audio = speech.RecognitionAudio(content = content)
 
         config = speech.RecognitionConfig(
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
@@ -111,13 +112,13 @@ def transcribe_audio(request):
         )
 
         response = client.recognize(config=config, audio=audio)
-        print(response.results)
+
         for result in response.results:
             transcript += result.alternatives[0].transcript
-            # return {"Transcript": result.alternatives[0].transcript}
     except e:
         print(e)
-        
+    
+    print(transcript)
     return {"Transcript": transcript}
 
 ### This function takes in a particular patient, FP, and conversation decision
