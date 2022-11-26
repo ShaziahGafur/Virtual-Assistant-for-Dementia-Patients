@@ -78,20 +78,10 @@ import * as FileSystem from 'expo-file-system';
 import axios from 'axios';
 
 
-export default function PlayAudioVideo({refresh}) {
+export default function PlayAudioVideo() {
   const video = React.useRef(null);
   const [status, setStatus] = React.useState({});
-  React.useEffect(() => {
-    if (refresh == false){
-      console.log("in false refresh");
-      video.current.setPositionAsync(0);
-      video.current.replayAsync();
-    }
-    else {
-      console.log('in useeffect refresh should be true',refresh);
-    }
 
-  }, [status,refresh])
   return (
     <View style={styles.container}>
       <Video

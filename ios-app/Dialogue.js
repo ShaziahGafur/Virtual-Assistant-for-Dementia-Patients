@@ -119,8 +119,9 @@ export default function Dialogue() {
       const header = {
         headers: { "Content-Type": "multipart/form-data" },
       };
+      console.log(BACKEND_API);
       const response = await axios.post(
-        BACKEND_API + "/generate_decision",
+        "http://192.168.1.8:5000" + "/generate_decision",
         formData,
         {
           headers: header,
@@ -140,7 +141,7 @@ export default function Dialogue() {
   return (
     <View style={styles.video}>
       {recording && <Text>Recording</Text>}
-      {<PlayAudioVideo refresh={stepOne}></PlayAudioVideo>}
+      {<PlayAudioVideo></PlayAudioVideo>}
       {/* { && <Text>Not Recording</Text>} */}
       {!isFetching && transcript && <Text>{transcript}</Text>}
     </View>

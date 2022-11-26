@@ -129,8 +129,9 @@ def download_media(decision):
     ## Setting up dummy parameters
     patientID = 1 # ID of patient
     FPID = 1 # FP's ID for that particular patient
-    prompt = decision[0] # Prompt 1 was selected, i.e. "How are you doing?"
+    prompt = decision # Prompt 1 was selected, i.e. "How are you doing?"
     prompt = prompt.replace('?', '')
+    print("prompt: ", prompt)
 
     try:
         bucket_name = "familiar-person-data" 
@@ -149,7 +150,7 @@ def download_media(decision):
         blob_video = bucket.blob(source_blob_name_video)
 
         # EDIT FILE PATH TO SAVE MEDIA FILES
-        destination_file_name = "tmp\\media_from_bucket\\"
+        destination_file_name = "tmp/media_from_bucket/"
         destination_file_name_audio = destination_file_name+"audio_clip.mp3"
         destination_file_name_video = destination_file_name+"video_clip.mp4"
 
@@ -218,6 +219,7 @@ def download_media(decision):
 
     audio_out_file = destination_file_name_audio
     video_out_file = destination_file_name_video
+    #video_out_file = "tmp\\media_from_bucket\\new_video_clip.mp4"
 
     # read mp3 file to an audio segment
     song = AudioSegment.from_mp3(destination_file_name_audio)
@@ -258,37 +260,38 @@ def decision_setup():
              "Hi {0}, nice to see you again!".format(p_name)]
 
     answers = {
-        "who are you?" : ["I am {0}.".format(fp_name)],
-        "where am i?" : ["You are in {0}.".format(hospital)],
-        "why am i here?" : ["You are in hospital because you are sick."],
-        "what day is it today?" : ["Today is {0}.".format(date)],
-        "what month is it?" : ["It is {0}.".format(month)],
-        "what year is it?" : ["It is the year {0}.".format(year)],
-        "what season is it?" : ["It is {0} now.".format(season)],
+        # "who are you?" : ["I am {0}.".format(fp_name)],
+        # "where am i?" : ["You are in {0}.".format(hospital)],
+        "why am i here?" : ["You are in hospital because you are sick."]
+        # "what day is it today?" : ["Today is {0}.".format(date)],
+        # "what month is it?" : ["It is {0}.".format(month)],
+        # "what year is it?" : ["It is the year {0}.".format(year)],
+        # "what season is it?" : ["It is {0} now.".format(season)],
     }
 
     prompts = ["How are you doing today?",
             "Do you know where you are?",
-            "Do you know what year it is?",
-            "Do you know what month it is?",
-            "Do you know what season it is?",
-            "How many children do you have?",
-            "Do you have a spouse? What is their name?",
-            "Where do you live?",
-            "What are your hobbies?",
-            "Are you feeling scared or afraid? Tell me more about how you are feeling.",
-            "Do you like to read?",
-            "Do you like to sew?",
-            "Do you like to exercise?",
-            "Tell me about your friends in school.",
-            "Tell me about your children."]
+            # "Do you know what year it is?",
+            "Do you know what month it is?"
+            # "Do you know what season it is?",
+            # "How many children do you have?",
+            # "Do you have a spouse? What is their name?",
+            # "Where do you live?",
+            # "What are your hobbies?",
+            # "Are you feeling scared or afraid? Tell me more about how you are feeling.",
+            # "Do you like to read?",
+            # "Do you like to sew?",
+            # "Do you like to exercise?",
+            # "Tell me about your friends in school.",
+            # "Tell me about your children."
+            ]
 
     matching_questions = {
-        ('where', 'where am i'): "where am i?",
-        ('what day', 'what is today', 'what\'s today\'s date', 'what is today\'s date', 'what date is it today', 'which day'): "what day is it today?",
-        ('what month', 'which month'): "what month is it?",
-        ('what year', 'which year'): "what year is it?",
-        ('what season', 'which season'): "what season is it?"
+        ('where', 'where am i'): "where am i?"
+        # ('what day', 'what is today', 'what\'s today\'s date', 'what is today\'s date', 'what date is it today', 'which day'): "what day is it today?",
+        # ('what month', 'which month'): "what month is it?",
+        # ('what year', 'which year'): "what year is it?",
+        # ('what season', 'which season'): "what season is it?"
     }
 
     matched_questions = {}
@@ -312,21 +315,24 @@ def get_response(answers, prompts, matched_questions, p_input):
   phrases = re.split("\? |\. |\! ", p_input.lower())
   response = ""
 
-  for phrase in phrases:
-    question = find_matching_question(matched_questions, phrase)
-    if question in answers:
-      answer = random.choice(answers[question])
-      download_media(answer)
-      response = response + answer + " "
+  # only answering the first question
+  question = find_matching_question(matched_questions, phrases[0])
+  if question in answers:
+    answer = random.choice(answers[question])
+    response = answer
+  else:
+    if not unused_prompts:
+      unused_prompts = prompts.copy()
+    
+    prompt = random.choice(unused_prompts)
+    unused_prompts.remove(prompt)
+    response = prompt
 
-  if not unused_prompts:
-    unused_prompts = prompts.copy()
-  
-  prompt = random.choice(unused_prompts)
-  unused_prompts.remove(prompt)
+  download_media(response)
+#   download_media("Do you know where you are?")
+  #response = response + prompt
 
-  download_media(prompt)
-  response = response + prompt
+#   response = "Do you know where you are?"
   
   return response
 
@@ -335,7 +341,7 @@ def generate_decision():
     transcript = transcribe_audio(request)
     return_value = {"Return":"Failure"}
     print("Transcript: " + transcript["Transcript"] + "\n")
-
+    transcript["Transcript"] = "hello"
     if transcript["Transcript"]:
         # call the decision functions
         greetings, answers, prompts, matched_questions = decision_setup()
@@ -343,7 +349,6 @@ def generate_decision():
         return_value = {"Return": get_response(answers, prompts, matched_questions, transcript["Transcript"])}
         print("Chosen response:", return_value["Return"])
     return return_value
-    
 
 # (TODO) Database stuff below -- put this in another file later
 from flask import render_template
