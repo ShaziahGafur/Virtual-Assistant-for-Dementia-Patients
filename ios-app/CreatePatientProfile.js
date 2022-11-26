@@ -12,9 +12,9 @@ import {
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { GooglePlayButton } from "@freakycoder/react-native-button";
-import { BACKEND_API } from "@env";
+import { REACT_APP_BACKEND_API } from "@env";
 import axios from "axios";
-console.log(BACKEND_API);
+console.log(REACT_APP_BACKEND_API);
 
 export default function CreatePatientProfile() {
   const [patientFirstName, setPatientFirstName] = React.useState(null);
@@ -31,10 +31,14 @@ export default function CreatePatientProfile() {
       lastName: patientLastName,
       hospitalID: patientHospitalID,
     };
-    const response = await axios.post(BACKEND_API + "/db/patients", body, {
-      headers: header,
-      method: "POST",
-    });
+    const response = await axios.post(
+      REACT_APP_BACKEND_API + "/db/patients",
+      body,
+      {
+        headers: header,
+        method: "POST",
+      }
+    );
     const data = response.data;
     if (data["result"] == "Success") {
       console.log("in success!!");

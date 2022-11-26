@@ -1,8 +1,8 @@
 # Virtual-Assistant-for-Dementia
 
 ## How to run the iOS Application
-For extra links, refer to this document: [Documentation](https://docs.google.com/document/d/1drUgM7sAjvyY1wdhVYIKTmXiFKVz9cIe8cFuc7jUkfY/edit?usp=sharing)
 
+For extra links, refer to this document: [Documentation](https://docs.google.com/document/d/1drUgM7sAjvyY1wdhVYIKTmXiFKVz9cIe8cFuc7jUkfY/edit?usp=sharing)
 
 Front-End is in React-Native
 
@@ -11,7 +11,9 @@ Back-End is in Flask
 ---
 
 ### Setup
-#### 1) For React-Native: 
+
+#### 1) For React-Native:
+
 [Set Up Environment for React Native](https://reactnative.dev/docs/environment-setup)
 
 Download Expo Go on your device
@@ -19,11 +21,12 @@ Download Expo Go on your device
 In the ios-app directory, do `npm install`
 
 #### 2) For Flask:
+
 Install Python 3
 
 Set up a virtual environment (or use mine):
 
-Set up a virtual environment by following [virtualenv documentation](https://docs.python.org/3/library/venv.html). You will need to pip install everything again. I'll make a requirements.txt soon. 
+Set up a virtual environment by following [virtualenv documentation](https://docs.python.org/3/library/venv.html). You will need to pip install everything again. I'll make a requirements.txt soon.
 
 To enter the virtual environment: (on Windows) `env\Scripts\activate` inside the api directory. You should see "(env)" in front of all your terminal cmds.
 
@@ -31,7 +34,7 @@ To deactivate the virtual environment: `deactivate`. The "(env)" should disappea
 
 #### 3) Create a Google Cloud Service Account
 
-On the Google Cloud account *and* in the Capstone Google Cloud Project, make a Google Cloud Service account. Follow these [instructions from Google](https://developers.google.com/workspace/guides/create-credentials#service-account). Make sure you save the .json of your key somewhere, and that you give yourself owner permission. 
+On the Google Cloud account _and_ in the Capstone Google Cloud Project, make a Google Cloud Service account. Follow these [instructions from Google](https://developers.google.com/workspace/guides/create-credentials#service-account). Make sure you save the .json of your key somewhere, and that you give yourself owner permission.
 
 #### 4) Authenticate your Google Cloud Service Account Credentials when calling Google Client APIs
 
@@ -40,9 +43,10 @@ Basically, when you're calling Google Client APIs, you need to authenticate / de
 In ios-api/api/config.py, change GOOGLE_APPLICATION_CREDENTIALS to be the path of your Google Service .json key.
 
 ---
-### Running 
 
-Hopefully everything is now set up. 
+### Running
+
+Hopefully everything is now set up.
 
 #### 1) Run the Backend
 
@@ -54,20 +58,24 @@ Start the back-end app by: `flask run --host=0.0.0.0`. This should dynamically r
 
 You should see two IP addresses pop up:
 ![image](https://user-images.githubusercontent.com/44852580/201503173-3f3fe8a0-2cc5-42e7-bd9b-a790a2d3262c.png)
-In the .env file (inside ios-app directory), change BACKEND_API to be the value of the second IP address (the one that's not 127.0.0.1).
+In the ios-app/.env file, change REACT_APP_BACKEND_API to be the value of the second IP address (the one that's not 127.0.0.1).
 
 #### 2) Run the Front End
 
 Start another terminal and go into the Virtual-Assistant .... etc folder, and run `cd ios-app`. You should have 3 terminals at this point.
 
-Now, run `npm start`. You should see something nice and pretty pop up with a QR code. On your Camera app, use the QR code to open the Expo Go application, and you should see the app running. 
+Now, run `npm start`. You should see something nice and pretty pop up with a QR code. On your Camera app, use the QR code to open the Expo Go application, and you should see the app running.
+
+The values of REACT_APP_BACKEND_API will be printed in every component for debugging reasons. If you find that the values aren't updated and are old, Ctrl-C, and run `npm start --reset-cache`, the old .env variables are cached somewhere and you need to clear them. Use the `--reset-cache` flag every time you change an environment variable in the ios-app/.env file.
 
 ---
+
 ### Note about communicating:
 
-For some ????? reason, React-Native's "fetch" doesn't work when doing POST requests with a body. You'll get the request but it'll have nothing in the body. I haven't tested if this is the same for GET or DELETE requests. Use "axios" instead. I have an example already set up in the RecordAudio.js file. 
+For some ????? reason, React-Native's "fetch" doesn't work when doing POST requests with a body. You'll get the request but it'll have nothing in the body. I haven't tested if this is the same for GET or DELETE requests. Use "axios" instead. I have an example already set up in the RecordAudio.js file.
 
 ---
+
 ### Old Notes on Ngrok which we may need for deploying to PROD
 
 Installation:

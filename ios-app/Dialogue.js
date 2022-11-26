@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { StyleSheet, View, Text, Button } from "react-native";
-import { BACKEND_API } from "@env";
+import { REACT_APP_BACKEND_API } from "@env";
 import { Audio } from "expo-av";
 import { GooglePlayButton } from "@freakycoder/react-native-button";
 import axios from "axios";
 import PlayAudioVideo from "./PlayAudioVideo";
 
-console.log(BACKEND_API);
+console.log(REACT_APP_BACKEND_API);
 
 const recordingOptions = {
   // android not currently in use, but parameters are required
@@ -120,7 +120,7 @@ export default function Dialogue() {
         headers: { "Content-Type": "multipart/form-data" },
       };
       const response = await axios.post(
-        BACKEND_API + "/generate_decision",
+        REACT_APP_BACKEND_API + "/generate_decision",
         formData,
         {
           headers: header,

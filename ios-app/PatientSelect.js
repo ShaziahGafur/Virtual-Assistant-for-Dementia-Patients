@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
-import { BACKEND_API } from "@env";
+import { REACT_APP_BACKEND_API } from "@env";
 import { GooglePlayButton } from "@freakycoder/react-native-button";
 import axios from "axios";
 import FPSelect from "./FPSelect";
 
-console.log(BACKEND_API);
+console.log(REACT_APP_BACKEND_API);
 
 const fetchData = async () => {
   const header = {
     headers: { "Content-Type": "application/json" },
   };
-  const response = await axios.get(BACKEND_API + "/db/patients", {
+  const response = await axios.get(REACT_APP_BACKEND_API + "/db/patients", {
     headers: header,
     method: "GET",
   });

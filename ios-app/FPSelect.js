@@ -1,22 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { BACKEND_API } from "@env";
+import { REACT_APP_BACKEND_API } from "@env";
 import { GooglePlayButton } from "@freakycoder/react-native-button";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import axios from "axios";
 import { View, Text, StyleSheet } from "react-native";
-console.log(BACKEND_API);
+console.log(REACT_APP_BACKEND_API);
 
 const fetchData = async (associatedPatientID) => {
   console.log(associatedPatientID);
   const header = {
     headers: { "Content-Type": "application/json" },
   };
-  const response = await axios.get(BACKEND_API + "/db/favouritepersons", {
-    headers: header,
-    method: "GET",
-    params: { patientID: associatedPatientID },
-  });
+  const response = await axios.get(
+    REACT_APP_BACKEND_API + "/db/favouritepersons",
+    {
+      headers: header,
+      method: "GET",
+      params: { patientID: associatedPatientID },
+    }
+  );
   console.log(response.data);
   return response.data;
 };
@@ -48,6 +51,7 @@ function FPSelect({ route, navigation }) {
     <>
       <View style={styles.container}>
         {FPs &&
+          FPs.length != 0 &&
           FPs.map((data, id) => {
             return (
               <View style={styles.container} key={id}>
@@ -57,12 +61,17 @@ function FPSelect({ route, navigation }) {
                   text={data.FirstName + " " + data.LastName}
                   textColor="#fff"
                   rippleColor="white"
-                  onPress={() => handleClick(data)}
+                  // onPress={() =>
+                  //   navigation.navigate("FP Select", {
+                  //     patientID: data.PatientID,
+                  //   })
+
+                  onPress={() => navigation.navigate("Dialogue")}
                 ></GooglePlayButton>
               </View>
             );
           })}
-        <Text>No Familiar People found!</Text>
+        {FPs && FPs.length == 0 && <Text>No Familiar People found!</Text>}
       </View>
     </>
   );
