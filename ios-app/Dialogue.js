@@ -62,7 +62,7 @@ export default function Dialogue() {
       if (stepOne == false || stepOne == undefined) {
         console.log("in the step of stopping recording + get transcript");
         stopAsyncRecording();
-        asyncGetTranscription();
+        // asyncGetTranscription();
         stepOne = true;
       } else {
         console.log("in the step of rerecording");
@@ -73,7 +73,7 @@ export default function Dialogue() {
 
     return () => {
       clearInterval(interval);
-      recording.stopAndUnloadAsync();
+      // recording.stopAndUnloadAsync();
     };
   }, []);
 
