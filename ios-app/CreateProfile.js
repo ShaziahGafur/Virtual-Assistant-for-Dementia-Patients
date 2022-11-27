@@ -46,7 +46,7 @@ export default function CreateProfile() {
     //   hospitalID: patientHospitalID,
     // };
     // const response = await axios.post(
-    //   BACKEND_API + "/db/favouritepersons",
+    //   REACT_APP_BACKEND_API + "/db/favouritepersons",
     //   body,
     //   {
     //     headers: header,

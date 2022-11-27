@@ -2,7 +2,7 @@ import * as React from "react";
 import { Text, View, StyleSheet, Button } from "react-native";
 import { Audio } from "expo-av";
 import axios from "axios";
-import { BACKEND_API } from "@env";
+import { REACT_APP_BACKEND_API } from "@env";
 
 export default function RecordAudio() {
   const [recording, setRecording] = React.useState();
@@ -81,7 +81,7 @@ export default function RecordAudio() {
         headers: { "Content-Type": "multipart/form-data" },
       };
       const response = await axios.post(
-        BACKEND_API + "/transcribe_audio",
+        REACT_APP_BACKEND_API + "/transcribe_audio",
         formData,
         {
           headers: header,
@@ -99,9 +99,12 @@ export default function RecordAudio() {
   const getSampleAudioTranscription = async () => {
     setIsFetching(true);
     try {
-      const response = await fetch(BACKEND_API + "/transcribe_sample_audio", {
-        method: "POST",
-      });
+      const response = await fetch(
+        REACT_APP_BACKEND_API + "/transcribe_sample_audio",
+        {
+          method: "POST",
+        }
+      );
       const data = await response.json();
       setTranscript(data.transcript);
     } catch (error) {
