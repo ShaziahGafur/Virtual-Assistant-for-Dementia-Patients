@@ -28,7 +28,7 @@ date = 'Sunday, November 13th, 2022'
 month = 'November'
 year = '2022'
 season = 'fall'
-unused_prompts = []
+unused_prompts = ["Do you know where you are?", "Do you know what month it is?"]
 
 @app.route('/time')
 @cross_origin()
@@ -86,8 +86,8 @@ def transcribe_audio(request):
         # # Instantiates a client
         client = speech.SpeechClient()
 
-        # stored_file = "C:\\Users\\ellen\\Virtual-Assistant-for-Dementia-Patients\\ios-app\\api\\tmp\\" + wav_file.filename + ".wav"
-        stored_file = "tmp\\" + wav_file.filename + ".wav"
+        stored_file = os.getcwd() + r"/tmp/" + wav_file.filename + ".wav"
+
         wav_file.save(stored_file)
 
         audio_file_name = wav_file.filename +'.wav'
@@ -97,19 +97,22 @@ def transcribe_audio(request):
         if wav_file:
             storage_client = storage.Client()
             bucket = storage_client.bucket(bucket_name)
-            # Upload file to Google Bucket
+            # Upload file to Google Bucket (the indigo-replica-365820.appspot.com one)
             blob = bucket.blob(wav_file.filename) 
             blob.upload_from_filename(stored_file)
 
-        gcs_uri = 'gs://'+bucket_name+'/' + wav_file.filename
+        with open(stored_file, "rb") as audio_file:
+            content = audio_file.read()
 
-        audio = speech.RecognitionAudio(uri=gcs_uri)
+        ## pull from the local file on the server instead, probably will be faster
+        audio = speech.RecognitionAudio(content = content)
         print(audio)
 
         config = speech.RecognitionConfig(
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
             sample_rate_hertz=44100,
             language_code="en-US",
+            enable_automatic_punctuation=True,
         )
 
         response = client.recognize(config=config, audio=audio)
@@ -129,8 +132,9 @@ def download_media(decision):
     ## Setting up dummy parameters
     patientID = 1 # ID of patient
     FPID = 1 # FP's ID for that particular patient
-    prompt = decision[0] # Prompt 1 was selected, i.e. "How are you doing?"
+    prompt = decision # Prompt 1 was selected, i.e. "How are you doing?"
     prompt = prompt.replace('?', '')
+    # print("prompt: ", prompt)
 
     try:
         bucket_name = "familiar-person-data" 
@@ -149,7 +153,7 @@ def download_media(decision):
         blob_video = bucket.blob(source_blob_name_video)
 
         # EDIT FILE PATH TO SAVE MEDIA FILES
-        destination_file_name = "tmp\\media_from_bucket\\"
+        destination_file_name = "tmp/media_from_bucket/"
         destination_file_name_audio = destination_file_name+"audio_clip.mp3"
         destination_file_name_video = destination_file_name+"video_clip.mp4"
 
@@ -203,50 +207,70 @@ def download_media(decision):
         ))
 
 
-    ## Trim/pad audio file to match video length
+    # ## Trim/pad audio file to match video length
 
-    audio = MP3(destination_file_name_audio)
-    audio_duration = audio.info.length
+    # audio = MP3(destination_file_name_audio)
+    # audio_duration = audio.info.length
 
 
+    # video_clip = VideoFileClip(destination_file_name_video)
+    # # video_duration = video_clip.duration
+
+    # # difference = video_duration - audio_duration # difference in seconds
+    # # difference = difference * 1000 # convert to milliseconds
+    # # difference = int(difference)
+
+    # audio_out_file = destination_file_name_audio
+    # # video_out_file = destination_file_name_video
+    # video_out_file = "tmp/media_from_bucket/new_video_clip.mp4"
+
+    # # # read mp3 file to an audio segment
+    # # song = AudioSegment.from_mp3(destination_file_name_audio)
+
+    # # if (difference < 0): # Audio clip is larger than video clip! Trim audio
+    # #     final_song = song[:(difference)]
+    # #     final_song.export(audio_out_file, format="mp3")
+
+    # # elif (difference > 0): # Audio clip is too short! Pad clip with silence
+
+    # #     # create silence audio segment, with length = padding_needed
+    # #     silence_segment = AudioSegment.silent(duration=difference)  # duration in milliseconds
+
+    # #     #Add above two audio segments    
+    # #     final_song = song + silence_segment
+
+    # #     #Either save modified audio
+    # #     final_song.export(audio_out_file, format="mp3")
+
+    # # else:
+    # #     song.export(audio_out_file, format="mp3")
+
+    # # ## Overlay video clip with audio 
+
+    # audio_clip = AudioFileClip(audio_out_file)
+
+    # # print("audio clip:", audio_clip)
+
+    # new_audio_clip = CompositeAudioClip([audio_clip])
+
+    # # print("new audio clip: ", new_audio_clip)
+    # video_clip.audio = new_audio_clip
+    # video_clip.write_videofile(video_out_file)
+
+    
     video_clip = VideoFileClip(destination_file_name_video)
-    video_duration = video_clip.duration
-
-    difference = video_duration - audio_duration # difference in seconds
-    difference = difference * 1000 # convert to milliseconds
-    difference = int(difference)
 
     audio_out_file = destination_file_name_audio
-    video_out_file = destination_file_name_video
+    video_out_file = "tmp/media_from_bucket/new_video_clip.mp4"
 
-    # read mp3 file to an audio segment
-    song = AudioSegment.from_mp3(destination_file_name_audio)
+    video_clip = VideoFileClip(destination_file_name_video)
 
-    if (difference < 0): # Audio clip is larger than video clip! Trim audio
-        final_song = song[:(difference)]
-        final_song.export(audio_out_file, format="mp3")
-
-    elif (difference > 0): # Audio clip is too short! Pad clip with silence
-
-        # create silence audio segment, with length = padding_needed
-        silence_segment = AudioSegment.silent(duration=difference)  # duration in milliseconds
-
-        #Add above two audio segments    
-        final_song = song + silence_segment
-
-        #Either save modified audio
-        final_song.export(audio_out_file, format="mp3")
-
-    else:
-        song.export(audio_out_file, format="mp3")
-
-    ## Overlay video clip with audio 
-
-    audio_clip = AudioFileClip(audio_out_file)
-
-    new_audio_clip = CompositeAudioClip([audio_clip])
-    video_clip.audio = new_audio_clip
-    video_clip.write_videofile(video_out_file)
+    video_with_new_audio = video_clip.set_audio(AudioFileClip(audio_out_file)) 
+    video_with_new_audio.write_videofile(video_out_file, 
+                     codec='libx264', 
+                     audio_codec='aac', 
+                     temp_audiofile='temp-audio.m4a', 
+                     remove_temp=True)
 
     return
 
@@ -258,37 +282,38 @@ def decision_setup():
              "Hi {0}, nice to see you again!".format(p_name)]
 
     answers = {
-        "who are you?" : ["I am {0}.".format(fp_name)],
-        "where am i?" : ["You are in {0}.".format(hospital)],
-        "why am i here?" : ["You are in hospital because you are sick."],
-        "what day is it today?" : ["Today is {0}.".format(date)],
-        "what month is it?" : ["It is {0}.".format(month)],
-        "what year is it?" : ["It is the year {0}.".format(year)],
-        "what season is it?" : ["It is {0} now.".format(season)],
+        # "who are you?" : ["I am {0}.".format(fp_name)],
+        # "where am i?" : ["You are in {0}.".format(hospital)],
+        "why am i here?" : ["You are in hospital because you are sick."]
+        # "what day is it today?" : ["Today is {0}.".format(date)],
+        # "what month is it?" : ["It is {0}.".format(month)],
+        # "what year is it?" : ["It is the year {0}.".format(year)],
+        # "what season is it?" : ["It is {0} now.".format(season)],
     }
 
     prompts = ["How are you doing today?",
             "Do you know where you are?",
-            "Do you know what year it is?",
-            "Do you know what month it is?",
-            "Do you know what season it is?",
-            "How many children do you have?",
-            "Do you have a spouse? What is their name?",
-            "Where do you live?",
-            "What are your hobbies?",
-            "Are you feeling scared or afraid? Tell me more about how you are feeling.",
-            "Do you like to read?",
-            "Do you like to sew?",
-            "Do you like to exercise?",
-            "Tell me about your friends in school.",
-            "Tell me about your children."]
+            # "Do you know what year it is?",
+            "Do you know what month it is?"
+            # "Do you know what season it is?",
+            # "How many children do you have?",
+            # "Do you have a spouse? What is their name?",
+            # "Where do you live?",
+            # "What are your hobbies?",
+            # "Are you feeling scared or afraid? Tell me more about how you are feeling.",
+            # "Do you like to read?",
+            # "Do you like to sew?",
+            # "Do you like to exercise?",
+            # "Tell me about your friends in school.",
+            # "Tell me about your children."
+            ]
 
     matching_questions = {
-        ('where', 'where am i'): "where am i?",
-        ('what day', 'what is today', 'what\'s today\'s date', 'what is today\'s date', 'what date is it today', 'which day'): "what day is it today?",
-        ('what month', 'which month'): "what month is it?",
-        ('what year', 'which year'): "what year is it?",
-        ('what season', 'which season'): "what season is it?"
+        # ('where', 'where am i'): "where am i?"
+        # ('what day', 'what is today', 'what\'s today\'s date', 'what is today\'s date', 'what date is it today', 'which day'): "what day is it today?",
+        # ('what month', 'which month'): "what month is it?",
+        # ('what year', 'which year'): "what year is it?",
+        # ('what season', 'which season'): "what season is it?"
     }
 
     matched_questions = {}
@@ -311,22 +336,28 @@ def get_response(answers, prompts, matched_questions, p_input):
   global unused_prompts
   phrases = re.split("\? |\. |\! ", p_input.lower())
   response = ""
+  print("phrases: ", phrases)
 
-  for phrase in phrases:
-    question = find_matching_question(matched_questions, phrase)
-    if question in answers:
-      answer = random.choice(answers[question])
-      download_media(answer)
-      response = response + answer + " "
+  # only answering the first question
+  print("phrases[-1]: ", phrases[-1])
+  question = find_matching_question(matched_questions, phrases[-1])
+  if question in answers:
+    answer = random.choice(answers[question])
+    response = answer
+    print("answer: ", answer)
+  else:
+    if not unused_prompts:
+      unused_prompts = prompts.copy()
+    prompt = random.choice(unused_prompts)
+    unused_prompts.remove(prompt)
+    response = prompt
+    print("prompt: ", prompt)
 
-  if not unused_prompts:
-    unused_prompts = prompts.copy()
-  
-  prompt = random.choice(unused_prompts)
-  unused_prompts.remove(prompt)
+  download_media(response)
+#   download_media("Do you know where you are?")
+  #response = response + prompt
 
-  download_media(prompt)
-  response = response + prompt
+#   response = "Do you know where you are?"
   
   return response
 
@@ -335,7 +366,6 @@ def generate_decision():
     transcript = transcribe_audio(request)
     return_value = {"Return":"Failure"}
     print("Transcript: " + transcript["Transcript"] + "\n")
-
     if transcript["Transcript"]:
         # call the decision functions
         greetings, answers, prompts, matched_questions = decision_setup()
@@ -343,7 +373,6 @@ def generate_decision():
         return_value = {"Return": get_response(answers, prompts, matched_questions, transcript["Transcript"])}
         print("Chosen response:", return_value["Return"])
     return return_value
-    
 
 # (TODO) Database stuff below -- put this in another file later
 from flask import render_template
@@ -439,3 +468,5 @@ def favourite_persons():
             return get_all_favourite_persons()
     elif request.method == "POST":
         return insert_a_favourite_person(request)
+
+

@@ -11,7 +11,7 @@ const fetchData = async () => {
   const header = {
     headers: { "Content-Type": "application/json" },
   };
-  const response = await axios.get(BACKEND_API + "/db/patients", {
+  const response = await axios.get("http://192.168.1.8:5000" + "/db/patients", {
     headers: header,
     method: "GET",
   });
