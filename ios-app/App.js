@@ -37,7 +37,7 @@ const App = () => {
           component={CreateNewPatientProfile}
         />
         <Stack.Screen
-          name="Create A Favourite Person Profile"
+          name="Create A Familiar Person Profile"
           component={CreateProfile}
         />
         <Stack.Screen name="Dialogue" component={Dialogue} />
@@ -109,8 +109,8 @@ function CreateNewProfile({ navigation }) {
       {/* <CreateProfile></CreateProfile> */}
       <GooglePlayButton
         style={styles.buttonStyling2}
-        onPress={() => navigation.navigate("Create A Favourite Person Profile")}
-        text="Create a Favourite Person Profile"
+        onPress={() => navigation.navigate("Create A Familiar Person Profile")}
+        text="Create a Familiar Person Profile"
         backgroundColor="#06038D"
         textColor="#fff"
         rippleColor="white"
