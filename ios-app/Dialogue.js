@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { StyleSheet, View, Text, Button } from "react-native";
-import { REACT_APP_BACKEND_API } from "@env";
+import { REACT_APP_BACKEND_API } from "@env"
 import { Audio } from "expo-av";
 import { GooglePlayButton } from "@freakycoder/react-native-button";
 import axios from "axios";

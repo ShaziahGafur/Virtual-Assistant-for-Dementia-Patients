@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { GooglePlayButton } from "@freakycoder/react-native-button";
-import { REACT_APP_BACKEND_API } from "@env";
+import { REACT_APP_BACKEND_API } from "@env"
 import axios from "axios";
 console.log(REACT_APP_BACKEND_API);
 
