@@ -106,7 +106,7 @@ def transcribe_audio(request):
 
         ## pull from the local file on the server instead, probably will be faster
         audio = speech.RecognitionAudio(content = content)
-        print(audio)
+        # print(audio)
 
         config = speech.RecognitionConfig(
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
@@ -116,7 +116,7 @@ def transcribe_audio(request):
         )
 
         response = client.recognize(config=config, audio=audio)
-        print(response.results)
+        # print(response.results)
         for result in response.results:
             transcript += result.alternatives[0].transcript
             # return {"Transcript": result.alternatives[0].transcript}
@@ -163,27 +163,27 @@ def download_media(decision):
         # Downloading video and audio clips from bucket
         blob_audio.download_to_filename(destination_file_name_audio, start=0, end=end_byte)
 
-        print("\n[SUCCESS] Downloaded bytes {} to {} of audio object {} from bucket {} to local file {}.".format(
-            start_byte, end_byte, source_blob_name_audio, bucket_name, destination_file_name_audio
-        ))
+        # print("\n[SUCCESS] Downloaded bytes {} to {} of audio object {} from bucket {} to local file {}.".format(
+        #     start_byte, end_byte, source_blob_name_audio, bucket_name, destination_file_name_audio
+        # ))
 
         blob_video.download_to_filename(destination_file_name_video, start=0, end=end_byte)
 
-        print("\n[SUCCESS] Downloaded bytes {} to {} of video object {} from bucket {} to local file {}.".format(
-            start_byte, end_byte, source_blob_name_video, bucket_name, destination_file_name_video
-        ))
+        # print("\n[SUCCESS] Downloaded bytes {} to {} of video object {} from bucket {} to local file {}.".format(
+        #     start_byte, end_byte, source_blob_name_video, bucket_name, destination_file_name_video
+        # ))
 
     except Exception as e: 
-        if str(e).startswith('404'):
-            print("[WARNING] Did not find file(s) in bucket! Perhaps this prompt is invalid.\n")
-            print(e)
+        # if str(e).startswith('404'):
+        #     print("[WARNING] Did not find file(s) in bucket! Perhaps this prompt is invalid.\n")
+        #     print(e)
 
-        else:
-            print("[ERROR]: Could not download media files from bucket.\n")
-            print(e)
+        # else:
+        #     print("[ERROR]: Could not download media files from bucket.\n")
+        #     print(e)
 
         # Play default video 
-        print("Retrieving default video & audio.\n")
+        # print("Retrieving default video & audio.\n")
         
         # Set path to download audio file from
         source_blob_name_audio = 'Patients/'+str(patientID)+'/Familiar Person/'+str(FPID)+"/Audio/Default.mp3"
@@ -196,15 +196,15 @@ def download_media(decision):
         # Downloading video and audio clips from bucket
         blob_audio.download_to_filename(destination_file_name_audio, start=0, end=end_byte)
 
-        print("\n[SUCCESS] Downloaded bytes {} to {} of DEFAULT audio object {} from bucket {} to local file {}.".format(
-            start_byte, end_byte, source_blob_name_audio, bucket_name, destination_file_name_audio
-        ))
+        # print("\n[SUCCESS] Downloaded bytes {} to {} of DEFAULT audio object {} from bucket {} to local file {}.".format(
+        #     start_byte, end_byte, source_blob_name_audio, bucket_name, destination_file_name_audio
+        # ))
 
         blob_video.download_to_filename(destination_file_name_video, start=0, end=end_byte)
 
-        print("\n[SUCCESS] Downloaded bytes {} to {} of DEFAULT video object {} from bucket {} to local file {}.".format(
-            start_byte, end_byte, source_blob_name_video, bucket_name, destination_file_name_video
-        ))
+        # print("\n[SUCCESS] Downloaded bytes {} to {} of DEFAULT video object {} from bucket {} to local file {}.".format(
+        #     start_byte, end_byte, source_blob_name_video, bucket_name, destination_file_name_video
+        # ))
 
 
     # ## Trim/pad audio file to match video length
@@ -284,7 +284,8 @@ def decision_setup():
     answers = {
         # "who are you?" : ["I am {0}.".format(fp_name)],
         # "where am i?" : ["You are in {0}.".format(hospital)],
-        "why am i here?" : ["You are in hospital because you are sick."]
+        "why am i here?" : ["You are in hospital because you are sick."],
+        "why am i here" : ["You are in hospital because you are sick."],
         # "what day is it today?" : ["Today is {0}.".format(date)],
         # "what month is it?" : ["It is {0}.".format(month)],
         # "what year is it?" : ["It is the year {0}.".format(year)],
@@ -334,24 +335,24 @@ def find_matching_question(matched_questions, phrase):
 
 def get_response(answers, prompts, matched_questions, p_input):
   global unused_prompts
-  phrases = re.split("\? |\. |\! ", p_input.lower())
+  phrases = re.split("\? |\. |\! |\, ", p_input.lower())
   response = ""
-  print("phrases: ", phrases)
+#   print("phrases: ", phrases)
 
-  # only answering the first question
-  print("phrases[-1]: ", phrases[-1])
+  # only answering the last question
+#   print("phrases[-1]: ", phrases[-1])
   question = find_matching_question(matched_questions, phrases[-1])
   if question in answers:
     answer = random.choice(answers[question])
     response = answer
-    print("answer: ", answer)
+    # print("answer: ", answer)
   else:
     if not unused_prompts:
       unused_prompts = prompts.copy()
     prompt = random.choice(unused_prompts)
     unused_prompts.remove(prompt)
     response = prompt
-    print("prompt: ", prompt)
+    # print("prompt: ", prompt)
 
   download_media(response)
 #   download_media("Do you know where you are?")
@@ -365,13 +366,13 @@ def get_response(answers, prompts, matched_questions, p_input):
 def generate_decision():
     transcript = transcribe_audio(request)
     return_value = {"Return":"Failure"}
-    print("Transcript: " + transcript["Transcript"] + "\n")
-    if transcript["Transcript"]:
-        # call the decision functions
-        greetings, answers, prompts, matched_questions = decision_setup()
-        # change return_value here
-        return_value = {"Return": get_response(answers, prompts, matched_questions, transcript["Transcript"])}
-        print("Chosen response:", return_value["Return"])
+    print("***TRANSCRIPT: " + transcript["Transcript"] + "\n")
+    # if transcript["Transcript"]:
+    # call the decision functions
+    greetings, answers, prompts, matched_questions = decision_setup()
+    # change return_value here
+    return_value = {"Return": get_response(answers, prompts, matched_questions, transcript["Transcript"])}
+    print("***CHOSEN RESPONSE:", return_value["Return"])
     return return_value
 
 # (TODO) Database stuff below -- put this in another file later
@@ -421,7 +422,7 @@ def patients():
     if request.method == "GET":
         return get_all_patients()
     elif request.method == "POST":
-        print("post!")
+        # print("post!")
         return insert_a_patient(request)
 
 def get_all_favourite_persons():
