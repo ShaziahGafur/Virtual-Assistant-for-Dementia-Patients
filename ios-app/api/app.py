@@ -92,21 +92,20 @@ def transcribe_audio(request):
 
         audio_file_name = wav_file.filename +'.wav'
         
-        bucket_name = BUCKET_NAME
+        # bucket_name = BUCKET_NAME
 
-        if wav_file:
-            storage_client = storage.Client()
-            bucket = storage_client.bucket(bucket_name)
-            # Upload file to Google Bucket (the indigo-replica-365820.appspot.com one)
-            blob = bucket.blob(wav_file.filename) 
-            blob.upload_from_filename(stored_file)
+        # if wav_file:
+        #     storage_client = storage.Client()
+        #     bucket = storage_client.bucket(bucket_name)
+        #     # Upload file to Google Bucket (the indigo-replica-365820.appspot.com one)
+        #     blob = bucket.blob(wav_file.filename) 
+        #     blob.upload_from_filename(stored_file)
 
         with open(stored_file, "rb") as audio_file:
             content = audio_file.read()
 
         ## pull from the local file on the server instead, probably will be faster
         audio = speech.RecognitionAudio(content = content)
-        print(audio)
 
         config = speech.RecognitionConfig(
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
@@ -137,7 +136,7 @@ def download_media(decision):
     # print("prompt: ", prompt)
 
     try:
-        bucket_name = "familiar-person-data" 
+        bucket_name = "familiar-person" 
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_APPLICATION_CREDENTIALS
 
         storage_client = storage.Client()
