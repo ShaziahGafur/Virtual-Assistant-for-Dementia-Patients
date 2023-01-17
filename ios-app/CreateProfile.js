@@ -55,7 +55,7 @@ export default function CreateProfile() {
   const [sound, setSound] = React.useState();
   const [recordingOneIsPlaying, setRecordingOneIsPlaying] = React.useState(false);
   const [recordingTwoIsPlaying, setRecordingTwoIsPlaying] = React.useState(false);
-  const [recordingThreeIsPlaying, setrecordingThreeIsPlaying] = React.useState(false);
+  const [recordingThreeIsPlaying, setRecordingThreeIsPlaying] = React.useState(false);
 
   const [recordingOne, setRecordingOne] = React.useState(null);
   const [recordingTwo, setRecordingTwo] = React.useState(null);
@@ -113,28 +113,36 @@ export default function CreateProfile() {
     if (number == 1){
         console.log("stop 1");
         await recordingOne.stopAndUnloadAsync();
-    const uri = recordingOne.getURI();
+        const uri = recordingOne.getURI();
         setRecordingOneLocation(uri);
       }
       else if (number == 2){
         console.log("stop 2");
         await recordingTwo.stopAndUnloadAsync();
-    const uri = recordingTwo.getURI();
+        const uri = recordingTwo.getURI();
         setRecordingTwoLocation(uri);
       }
       else if (number == 3){
         console.log("stop 3");
-await recordingThree.stopAndUnloadAsync();
-    const uri = recordingThree.getURI();
+        await recordingThree.stopAndUnloadAsync();
+        const uri = recordingThree.getURI();
         setRecordingThreeLocation(uri);
       }
     // console.log("Recording stopped and stored at", uri);
   }
 
 
-  stopPlayingRecording = async() => {
+  stopPlayingRecording = async(number) => {
     console.log("stop playing sound");
+    if (number == 1){
     setRecordingOneIsPlaying(false);
+      }
+      else if (number == 2){
+    setRecordingTwoIsPlaying(false);
+      }
+      else if (number == 3){
+    setRecordingThreeIsPlaying(false);
+      }
     sound.unloadAsync();
   }
 
@@ -149,9 +157,12 @@ await recordingThree.stopAndUnloadAsync();
       }
       else if (number == 2){
         uri = recordingTwoLocation;
+        setRecordingTwoIsPlaying(true);
+
       }
       else if (number == 3){
         uri = recordingThreeLocation;
+        setRecordingThreeIsPlaying(true);
       }
     const { sound } = await Audio.Sound.createAsync({
       uri: uri || URIFROMFileSystem,
@@ -177,6 +188,7 @@ await recordingThree.stopAndUnloadAsync();
       }
     try {
       // this for whatever reason isnt working ?? so uh just setting them back to null 
+      // (TODO) actually delete them later on
       // const info = await FileSystem.getInfoAsync(recordingToDelete.getURI());
       // await FileSystem.deleteAsync(info.uri);
       let recordingToDelete;
@@ -186,10 +198,16 @@ await recordingThree.stopAndUnloadAsync();
         setRecordingOneLocation(null);
       }
       else if (number == 2){
-                recordingToDelete = recordingTwo;
+        
+        setRecordingTwoIsPlaying(false);
+        setRecordingTwo(null);
+        setRecordingTwoLocation(null);
       }
       else if (number == 3){
-                recordingToDelete = recordingThree;
+        
+        setRecordingThreeIsPlaying(false);
+        setRecordingThree(null);
+        setRecordingThreeLocation(null);
       }
     } catch (error) {
       console.log("There was an error deleting recording file", error);
@@ -335,6 +353,7 @@ await recordingThree.stopAndUnloadAsync();
         <Text style={styles.subtitleText}>Voice Recordings</Text>
         {/* <Text style={styles.text}>Take 3 different voice recordings.</Text>
         <Text style={styles.subHeadingText}>Voice Recording 1: Right now it is 2:40 PM on January 17th 2023.</Text> */}
+        <View>
         <View>{! recordingOneLocation && 
               <Button
                 title={recordingOne ? 'Stop Recording One' : 'Start Recording One'}
@@ -348,6 +367,37 @@ await recordingThree.stopAndUnloadAsync();
           {recordingOneLocation && (
         <Button title={"Delete Recording One"} onPress={() => deleteConfirmationAlert(1)}></Button>
       )}
+      </View>
+      <View>
+        <View>{! recordingTwoLocation && 
+              <Button
+                title={recordingTwo ? 'Stop Recording Two' : 'Start Recording Two'}
+                onPress={recordingTwo ? ()=>stopRecording(2) : ()=>startRecording(2)}
+              />
+              }
+            </View>
+            {recordingTwoLocation && (
+        <Button title={recordingTwoIsPlaying != false ? "Play Recording Two" : "Stop Playing Recording Two"} onPress={()=>playRecording(2)}></Button>
+      )}
+          {recordingTwoLocation && (
+        <Button title={"Delete Recording Two"} onPress={() => deleteConfirmationAlert(2)}></Button>
+      )}
+      </View>
+      <View>
+        <View>{! recordingThreeLocation && 
+              <Button
+                title={recordingThree ? 'Stop Recording Three' : 'Start Recording Three'}
+                onPress={recordingThree ? ()=>stopRecording(3) : ()=>startRecording(3)}
+              />
+              }
+            </View>
+            {recordingThreeLocation && (
+        <Button title={recordingThreeIsPlaying != false ? "Play Recording Three" : "Stop Playing Recording Three"} onPress={()=>playRecording(3)}></Button>
+      )}
+          {recordingThreeLocation && (
+        <Button title={"Delete Recording Three"} onPress={() => deleteConfirmationAlert(3)}></Button>
+      )}
+      </View>
         <GooglePlayButton
           style={styles.buttonStyling}
           backgroundColor="#06038D"
