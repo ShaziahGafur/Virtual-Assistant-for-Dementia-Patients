@@ -444,18 +444,43 @@ def get_favourite_persons_for_patient(patientID):
     return result
 
 def insert_a_favourite_person(request):
-    con = sqlite3.connect(DATABASE)
-    cur = con.cursor()
-
+    
     # parse first name and last name
     # parse the photo and audio recordings
     # upload those to the google cloud bucket in a new folder
 
-    res = cur.execute("SELECT * FROM Patients")
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
 
-    result = clean_sql_output(res)
+    favourite_person_info = request.get_json()
 
-    return result
+    first_name = favourite_person_info["firstName"]
+    last_name = favourite_person_info["lastName"]
+    favourite_person_id = favourite_person_info["favouritePersonID"]
+    patient_id = favourite_person_info["patientID"]
+
+    # may need to create the picture link and recording link here. 
+    # 
+
+    if favourite_person_info["pictureLink"] and favourite_person_info["recordingLink"]:
+        picture_link = favourite_person_info["pictureLink"]
+        recording_link = favourite_person_info["recordingLink"]
+        sql_input = (first_name, last_name, favourite_person_id, patient_id, picture_link, recording_link)
+        res = cur.execute("INSERT INTO Patients(FirstName, LastName, FavouritePersonsID, PatientID, PictureLink, RecordingLink) VALUES (?,?,?,?,?,?)", sql_input)
+    elif favourite_person_info["pictureLink"] and not favourite_person_info["recordingLink"]:
+        picture_link = favourite_person_info["pictureLink"]
+        sql_input = (first_name, last_name, favourite_person_id, patient_id, picture_link)
+        res = cur.execute("INSERT INTO Patients(FirstName, LastName, FavouritePersonsID, PatientID, PictureLink) VALUES (?,?,?,?,?)", sql_input)
+    elif not favourite_person_info["pictureLink"] and favourite_person_info["recordingLink"]:
+        recording_link = favourite_person_info["recordingLink"]
+        sql_input = (first_name, last_name, favourite_person_id, patient_id, recording_link)
+        res = cur.execute("INSERT INTO Patients(FirstName, LastName, FavouritePersonsID, PatientID, RecordingLink) VALUES (?,?,?,?,?)", sql_input)
+    elif not favourite_person_info["recordingLink"] and not favourite_person_info["pictureLink"]:
+        sql_input = (first_name, last_name, favourite_person_id, patient_id)
+        res = cur.execute("INSERT INTO Patients(FirstName, LastName, FavouritePersonsID, PatientID) VALUES (?,?,?,?)", sql_input)
+    
+    con.commit()
+    return {"result":"Success"}
 
 @app.route("/db/favouritepersons", methods=["GET","POST"])
 def favourite_persons():
