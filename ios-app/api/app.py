@@ -444,6 +444,12 @@ def get_favourite_persons_for_patient(patientID):
     return result
 
 def insert_a_favourite_person(request):
+    print(request)
+    files = request.files
+    print(files)
+    files_of_request = files["files"]
+
+    print(files_of_request)
     
     # parse first name and last name
     # parse the photo and audio recordings
@@ -452,11 +458,20 @@ def insert_a_favourite_person(request):
     con = sqlite3.connect(DATABASE)
     cur = con.cursor()
 
-    favourite_person_info = request.get_json()
+
+    request_data = request.form or request.get_json()
+    print(request_data)
+    # print(request_data["content"])
+
+    favourite_person_info = request_data
+    # favourite_person_info = request_data.content
+    # favourite_person_info = request.content
 
     first_name = favourite_person_info["firstName"]
     last_name = favourite_person_info["lastName"]
     patient_id = favourite_person_info["patientID"]
+
+    print(first_name, last_name, patient_id)
 
     # may need to create the picture link and recording link here. 
 
@@ -480,7 +495,7 @@ def insert_a_favourite_person(request):
         sql_input = (first_name, last_name, patient_id)
         res = cur.execute("INSERT INTO FavouritePersons(FirstName, LastName,  PatientID) VALUES (?,?,?)", sql_input)
     
-    con.commit()
+    # con.commit()
     return {"result":"Success"}
 
 @app.route("/db/favouritepersons", methods=["GET","POST"])
