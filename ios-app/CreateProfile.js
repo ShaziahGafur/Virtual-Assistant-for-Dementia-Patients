@@ -10,6 +10,7 @@ import {
   Text,
   StyleSheet,
   TextInput,
+  Alert
 } from "react-native";
 import DropDownPicker from 'react-native-dropdown-picker';
 import { AntDesign } from "@expo/vector-icons";
@@ -17,6 +18,7 @@ import axios from "axios";
 import { GooglePlayButton } from "@freakycoder/react-native-button";
 import * as ImagePicker from "expo-image-picker";
 import { Audio } from 'expo-av';
+import * as FileSystem from "expo-file-system";
 
 import { REACT_APP_BACKEND_API } from "@env"
 
@@ -51,6 +53,9 @@ export default function CreateProfile() {
   const [value, setValue] = useState(null);
 
   const [sound, setSound] = React.useState();
+  const [recordingOneIsPlaying, setRecordingOneIsPlaying] = React.useState(false);
+  const [recordingTwoIsPlaying, setRecordingTwoIsPlaying] = React.useState(false);
+  const [recordingThreeIsPlaying, setrecordingThreeIsPlaying] = React.useState(false);
 
   const [recordingOne, setRecordingOne] = React.useState(null);
   const [recordingTwo, setRecordingTwo] = React.useState(null);
@@ -60,7 +65,9 @@ export default function CreateProfile() {
   const [recordingTwoLocation, setRecordingTwoLocation] = React.useState(null);
   const [recordingThreeLocation, setRecordingThreeLocation] = React.useState(null);
 
-    async function startRecording(number) {
+      // let recording = new Audio.Recording();
+
+    startRecording = async(number) => {
     try {
       console.log("Requesting permissions..");
       await Audio.requestPermissionsAsync();
@@ -69,17 +76,29 @@ export default function CreateProfile() {
         playsInSilentModeIOS: true,
       });
       console.log("Starting recording..");
-      const recording = new Audio.Recording();
-      await recording.prepareToRecordAsync(recordingOptions);
-      await recording.startAsync();
       if (number == 1){
-        setRecordingOne(recording);
+        console.log("record 1");
+        
+      const recordingOne = new Audio.Recording();
+      await recordingOne.prepareToRecordAsync(recordingOptions);
+      await recordingOne.startAsync();
+        setRecordingOne(recordingOne);
       }
       else if (number == 2){
-        setRecordingTwo(recording);
+        console.log("record 2");
+
+      const recordingTwo = new Audio.Recording();
+      await recordingTwo.prepareToRecordAsync(recordingOptions);
+      await recordingTwo.startAsync();
+        setRecordingTwo(recordingTwo);
       }
       else if (number == 3){
-        setRecordingThree(recording);
+        console.log("record 3");
+
+      const recordingThree = new Audio.Recording();
+      await recordingThree.prepareToRecordAsync(recordingOptions);
+      await recordingThree.startAsync();
+        setRecordingThree(recordingThree);
       }
       console.log("Recording started");
     } catch (err) {
@@ -87,28 +106,46 @@ export default function CreateProfile() {
     }
   }
 
-  async function stopRecording(number) {
+  stopRecording = async(number) => {
     console.log("Stopping recording..");
-    await recording.stopAndUnloadAsync();
-    const uri = recording.getURI();
+    // await recording.stopAndUnloadAsync();
+    // const uri = recording.getURI();
     if (number == 1){
+        console.log("stop 1");
+        await recordingOne.stopAndUnloadAsync();
+    const uri = recordingOne.getURI();
         setRecordingOneLocation(uri);
       }
       else if (number == 2){
+        console.log("stop 2");
+        await recordingTwo.stopAndUnloadAsync();
+    const uri = recordingTwo.getURI();
         setRecordingTwoLocation(uri);
       }
       else if (number == 3){
+        console.log("stop 3");
+await recordingThree.stopAndUnloadAsync();
+    const uri = recordingThree.getURI();
         setRecordingThreeLocation(uri);
       }
-    console.log("Recording stopped and stored at", uri);
+    // console.log("Recording stopped and stored at", uri);
   }
 
-  async function playRecording(number) {
+
+  stopPlayingRecording = async() => {
+    console.log("stop playing sound");
+    setRecordingOneIsPlaying(false);
+    sound.unloadAsync();
+  }
+
+
+  playRecording = async(number) => {
     console.log("Playing Recording");
     //const uri = recording.getURI();
     let uri; 
     if (number == 1){
         uri = recordingOneLocation;
+        setRecordingOneIsPlaying(true);
       }
       else if (number == 2){
         uri = recordingTwoLocation;
@@ -121,9 +158,53 @@ export default function CreateProfile() {
     });
 
     setSound(sound);
-    setSoundIsPlaying(true);
+    // setSoundIsPlaying(true);
     await sound.playAsync();
   }
+
+  deleteRecording = async(number) => {
+    console.log("now deleting recording");
+    console.log(number);
+    let recordingToDelete;
+        if (number == 1){
+        recordingToDelete = recordingOne;
+      }
+      else if (number == 2){
+                recordingToDelete = recordingTwo;
+      }
+      else if (number == 3){
+                recordingToDelete = recordingThree;
+      }
+    try {
+      // this for whatever reason isnt working ?? so uh just setting them back to null 
+      // const info = await FileSystem.getInfoAsync(recordingToDelete.getURI());
+      // await FileSystem.deleteAsync(info.uri);
+      let recordingToDelete;
+        if (number == 1){
+        setRecordingOneIsPlaying(false);
+        setRecordingOne(null);
+        setRecordingOneLocation(null);
+      }
+      else if (number == 2){
+                recordingToDelete = recordingTwo;
+      }
+      else if (number == 3){
+                recordingToDelete = recordingThree;
+      }
+    } catch (error) {
+      console.log("There was an error deleting recording file", error);
+    }
+  }
+
+  const deleteConfirmationAlert = (number) =>
+    Alert.alert('Confirm Recording Deletion', 'Are you sure you want to delete Recording '+ number + "?", [
+      {
+        text: 'Cancel',
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
+      },
+      {text: 'Delete', onPress: () => deleteRecording(number)},
+    ]);
 
   getPatients = async () => {
     let data = await fetchData();
@@ -172,27 +253,27 @@ export default function CreateProfile() {
   };
 
   const onSubmit = async () => {
-    // const header = {
-    //   headers: { "Content-Type": "application/json" },
-    // };
-    // const body = {
-    //   firstName: patientFirstName,
-    //   lastName: patientLastName,
-    //   hospitalID: patientHospitalID,
-    // };
-    // const response = await axios.post(
-    //   REACT_APP_BACKEND_API + "/db/favouritepersons",
-    //   body,
-    //   {
-    //     headers: header,
-    //     method: "POST",
-    //   }
-    // );
-    // const data = response.data;
-    // if (data["result"] == "Success") {
-    //   console.log("in success!!");
-    //   // setFormSubmitted(true);
-    // }
+    const header = {
+      headers: { "Content-Type": "application/json" },
+    };
+    const body = {
+      firstName: firstNameFP,
+      lastName: lastNameFP,
+      patientID: value,
+    };
+    const response = await axios.post(
+      REACT_APP_BACKEND_API + "/db/favouritepersons",
+      body,
+      {
+        headers: header,
+        method: "POST",
+      }
+    );
+    const data = response.data;
+    if (data["result"] == "Success") {
+      console.log("in success!!");
+      setFormSubmitted(true);
+    }
   };
 
   if (formSubmitted == false) {
@@ -251,10 +332,22 @@ export default function CreateProfile() {
           onPress={() => takeImageWithCamera()}
         /> 
         </View>
-        {/* <Text style={styles.subtitleText}>Voice Recordings</Text>
-        <Text style={styles.text}>Take 3 different voice recordings.</Text>
+        <Text style={styles.subtitleText}>Voice Recordings</Text>
+        {/* <Text style={styles.text}>Take 3 different voice recordings.</Text>
         <Text style={styles.subHeadingText}>Voice Recording 1: Right now it is 2:40 PM on January 17th 2023.</Text> */}
-
+        <View>{! recordingOneLocation && 
+              <Button
+                title={recordingOne ? 'Stop Recording One' : 'Start Recording One'}
+                onPress={recordingOne ? ()=>stopRecording(1) : ()=>startRecording(1)}
+              />
+              }
+            </View>
+            {recordingOneLocation && (
+        <Button title={recordingOneIsPlaying != false ? "Play Recording One" : "Stop Playing Recording One"} onPress={()=>playRecording(1)}></Button>
+      )}
+          {recordingOneLocation && (
+        <Button title={"Delete Recording One"} onPress={() => deleteConfirmationAlert(1)}></Button>
+      )}
         <GooglePlayButton
           style={styles.buttonStyling}
           backgroundColor="#06038D"
@@ -401,3 +494,25 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
   },
 });
+
+const recordingOptions = {
+  // android not currently in use, but parameters are required
+  android: {
+    extension: ".m4a",
+    outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_MPEG_4,
+    audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_AAC,
+    sampleRate: 44100,
+    numberOfChannels: 2,
+    bitRate: 128000,
+  },
+  ios: {
+    extension: ".wav",
+    audioQuality: Audio.RECORDING_OPTION_IOS_AUDIO_QUALITY_HIGH,
+    sampleRate: 44100,
+    numberOfChannels: 1,
+    bitRate: 128000,
+    linearPCMBitDepth: 16,
+    linearPCMIsBigEndian: false,
+    linearPCMIsFloat: false,
+  },
+};
