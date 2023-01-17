@@ -20,8 +20,9 @@ import * as ImagePicker from "expo-image-picker";
 import { Audio } from 'expo-av';
 import * as FileSystem from "expo-file-system";
 
-import { REACT_APP_BACKEND_API } from "@env"
+// import { REACT_APP_BACKEND_API } from "@env"
 
+const REACT_APP_BACKEND_API = "http://100.66.73.7:5000";
 console.log(REACT_APP_BACKEND_API);
 
 const fetchData = async () => {
@@ -300,25 +301,29 @@ export default function CreateProfile() {
         name: "recording_1",
       };
       
-      // const recording_two_file = {
-      //   recording_two_uri,
-      //   type: "audio/x-wav",
-      //   name: "recording_2",
-      // };
+      const recording_two_file = {
+        recording_two_uri,
+        type: "audio/x-wav",
+        name: "recording_2",
+      };
       
-      // const recording_three_file = {
-      //   recording_three_uri,
-      //   type: "audio/x-wav",
-      //   name: "recording 3",
-      // };
-      // axios_files.push(photo_file);
-      // axios_files.push(recording_one_file);
-      // axios_files.push(recording_two_file);
-      // axios_files.push(recording_three_file);
+      const recording_three_file = {
+        recording_three_uri,
+        type: "audio/x-wav",
+        name: "recording 3",
+      };
+      axios_files.push(photo_file);
+      axios_files.push(recording_one_file);
+      axios_files.push(recording_two_file);
+      axios_files.push(recording_three_file);
       console.log(FP_info)
-      formData.append("files", recording_one_file);
+      formData.append("recordingOneFile", recording_one_file);
+      formData.append("recordingTwoFile", recording_two_file);
+      formData.append("recordingThreeFile", recording_three_file);
+      formData.append("photoFile", photo_file);
+
       // formData.append("content", FP_info);
-      // remember you can't add an object to a form data
+      // remember you can't add an object to a form data if its not a file, so you need to following for loop
       for ( var key in FP_info ) {
     formData.append(key, FP_info[key]);
 }
@@ -337,8 +342,8 @@ export default function CreateProfile() {
       setFormSubmitted(true);
     }
   };
-
-  if (formSubmitted == false) {
+ 
+  if (formSubmitted == false ) {
     return (
       <View style={styles.formContainer}>
         <Text style={styles.subtitleText}>PATIENT SEARCH</Text>

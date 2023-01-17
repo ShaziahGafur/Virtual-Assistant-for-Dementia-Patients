@@ -447,9 +447,16 @@ def insert_a_favourite_person(request):
     print(request)
     files = request.files
     print(files)
-    files_of_request = files["files"]
+    recording_one = files["recordingOneFile"]
+    recording_two = files["recordingTwoFile"]
+    recording_three = files["recordingThreeFile"]
 
-    print(files_of_request)
+    photo = files["photoFile"]
+
+    print(recording_one)
+    print(recording_two)
+    print(recording_three)
+    print(photo)
     
     # parse first name and last name
     # parse the photo and audio recordings
