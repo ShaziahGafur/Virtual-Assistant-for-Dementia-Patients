@@ -456,28 +456,29 @@ def insert_a_favourite_person(request):
 
     first_name = favourite_person_info["firstName"]
     last_name = favourite_person_info["lastName"]
-    favourite_person_id = favourite_person_info["favouritePersonID"]
     patient_id = favourite_person_info["patientID"]
 
     # may need to create the picture link and recording link here. 
-    # 
 
-    if favourite_person_info["pictureLink"] and favourite_person_info["recordingLink"]:
+    if "pictureLink" in favourite_person_info.keys() and "recordingLink" in favourite_person_info.keys():
         picture_link = favourite_person_info["pictureLink"]
         recording_link = favourite_person_info["recordingLink"]
-        sql_input = (first_name, last_name, favourite_person_id, patient_id, picture_link, recording_link)
-        res = cur.execute("INSERT INTO Patients(FirstName, LastName, FavouritePersonsID, PatientID, PictureLink, RecordingLink) VALUES (?,?,?,?,?,?)", sql_input)
-    elif favourite_person_info["pictureLink"] and not favourite_person_info["recordingLink"]:
+        sql_input = (first_name, last_name,  patient_id, picture_link, recording_link)
+        res = cur.execute("INSERT INTO FavouritePersons(FirstName, LastName, PatientID, PictureLink, RecordingLink) VALUES (?,?,?,?,?)", sql_input)
+
+    elif "pictureLink"  in favourite_person_info.keys() and "recordingLink" not in favourite_person_info.keys():
         picture_link = favourite_person_info["pictureLink"]
-        sql_input = (first_name, last_name, favourite_person_id, patient_id, picture_link)
-        res = cur.execute("INSERT INTO Patients(FirstName, LastName, FavouritePersonsID, PatientID, PictureLink) VALUES (?,?,?,?,?)", sql_input)
-    elif not favourite_person_info["pictureLink"] and favourite_person_info["recordingLink"]:
+        sql_input = (first_name, last_name,  patient_id, picture_link)
+        res = cur.execute("INSERT INTO FavouritePersons(FirstName, LastName, PatientID, PictureLink) VALUES (?,?,?,?)", sql_input)
+
+    elif "pictureLink" not in favourite_person_info.keys() and "recordingLink" in favourite_person_info.keys():
         recording_link = favourite_person_info["recordingLink"]
-        sql_input = (first_name, last_name, favourite_person_id, patient_id, recording_link)
-        res = cur.execute("INSERT INTO Patients(FirstName, LastName, FavouritePersonsID, PatientID, RecordingLink) VALUES (?,?,?,?,?)", sql_input)
-    elif not favourite_person_info["recordingLink"] and not favourite_person_info["pictureLink"]:
-        sql_input = (first_name, last_name, favourite_person_id, patient_id)
-        res = cur.execute("INSERT INTO Patients(FirstName, LastName, FavouritePersonsID, PatientID) VALUES (?,?,?,?)", sql_input)
+        sql_input = (first_name, last_name,  patient_id, recording_link)
+        res = cur.execute("INSERT INTO FavouritePersons(FirstName, LastName, PatientID, RecordingLink) VALUES (?,?,?,?)", sql_input)
+
+    elif "pictureLink" not in favourite_person_info.keys() and "recordingLink" not in favourite_person_info.keys():
+        sql_input = (first_name, last_name, patient_id)
+        res = cur.execute("INSERT INTO FavouritePersons(FirstName, LastName,  PatientID) VALUES (?,?,?)", sql_input)
     
     con.commit()
     return {"result":"Success"}
