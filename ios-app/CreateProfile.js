@@ -272,16 +272,60 @@ export default function CreateProfile() {
 
   const onSubmit = async () => {
     const header = {
-      headers: { "Content-Type": "application/json" },
-    };
-    const body = {
+        headers: { "Content-Type": "multipart/form-data" },
+      };
+    const FP_info = {
       firstName: firstNameFP,
       lastName: lastNameFP,
       patientID: value,
     };
+    const formData = new FormData();
+
+    let axios_files = [];
+
+      const photo_file = {
+        image,
+        type: "image/jpeg",
+        name: "photo",
+      };
+      
+      const recording_one_uri = recordingOne.getURI();
+      console.log(`FILE INFO: ${JSON.stringify(recording_one_uri)}`);
+      const recording_two_uri = recordingTwo.getURI();
+      const recording_three_uri = recordingThree.getURI();
+
+      const recording_one_file = {
+        recording_one_uri,
+        type: "audio/x-wav",
+        name: "recording_1",
+      };
+      
+      // const recording_two_file = {
+      //   recording_two_uri,
+      //   type: "audio/x-wav",
+      //   name: "recording_2",
+      // };
+      
+      // const recording_three_file = {
+      //   recording_three_uri,
+      //   type: "audio/x-wav",
+      //   name: "recording 3",
+      // };
+      // axios_files.push(photo_file);
+      // axios_files.push(recording_one_file);
+      // axios_files.push(recording_two_file);
+      // axios_files.push(recording_three_file);
+      console.log(FP_info)
+      formData.append("files", recording_one_file);
+      // formData.append("content", FP_info);
+      // remember you can't add an object to a form data
+      for ( var key in FP_info ) {
+    formData.append(key, FP_info[key]);
+}
     const response = await axios.post(
       REACT_APP_BACKEND_API + "/db/favouritepersons",
-      body,
+      // body,
+      formData,
       {
         headers: header,
         method: "POST",
