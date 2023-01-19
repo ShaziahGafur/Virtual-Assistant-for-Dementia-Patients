@@ -314,7 +314,7 @@ export default function CreateProfile() {
     };
     const formData = new FormData();
       const photo_file = {
-        image,
+        uri:"file://"+image,
         type: "image/jpg",
         name: "photo",
       };
@@ -325,21 +325,21 @@ export default function CreateProfile() {
       const recording_three_uri = recordingThree.getURI();
 
       const recording_one_file = {
-        recording_one_uri,
+        uri: recording_one_uri,
         type: "audio/x-wav",
         name: "recording_1",
       };
       
       const recording_two_file = {
-        recording_two_uri,
+        uri: recording_two_uri,
         type: "audio/x-wav",
         name: "recording_2",
       };
       
       const recording_three_file = {
-        recording_three_uri,
+        uri: recording_three_uri,
         type: "audio/x-wav",
-        name: "recording 3",
+        name: "recording_3",
       };
       console.log(recording_one_file);
       formData.append("recordingOneFile", recording_one_file);
@@ -347,7 +347,6 @@ export default function CreateProfile() {
       formData.append("recordingThreeFile", recording_three_file);
       formData.append("photoFile", photo_file);
 
-      formData.append("content", FP_info);
       //remember you can't add an object to a form data if its not a file, so you need to following for loop
       for ( var key in FP_info ) {
     formData.append(key, FP_info[key]);
