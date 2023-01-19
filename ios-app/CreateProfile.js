@@ -10,7 +10,8 @@ import {
   Text,
   StyleSheet,
   TextInput,
-  Alert
+  Alert,
+  Pressable
 } from "react-native";
 import DropDownPicker from 'react-native-dropdown-picker';
 import { AntDesign } from "@expo/vector-icons";
@@ -134,8 +135,6 @@ export default function CreateProfile() {
 
   stopRecording = async(number) => {
     console.log("Stopping recording..");
-    // await recording.stopAndUnloadAsync();
-    // const uri = recording.getURI();
     if (number == 1){
         console.log("stop 1");
         await recordingOne.stopAndUnloadAsync();
@@ -172,6 +171,19 @@ export default function CreateProfile() {
     sound.unloadAsync();
   }
 
+  // TODO: change the state of which recording is playing back to false when the sound finishes
+  //   React.useEffect(() => {
+  //   return sound
+  //     ? () => {
+  //         console.log('Unloading Sound');
+  //         setRecordingOneIsPlaying(false);
+  //         setRecordingTwoIsPlaying(false);
+  //         setRecordingThreeRecording(false);
+  //         sound.unloadAsync();
+  //       }
+  //     : undefined;
+  // }, [sound]);
+
 
   playRecording = async(number) => {
     console.log("Playing Recording");
@@ -195,7 +207,6 @@ export default function CreateProfile() {
     });
 
     setSound(sound);
-    // setSoundIsPlaying(true);
     await sound.playAsync();
   }
 
@@ -213,8 +224,8 @@ export default function CreateProfile() {
                 recordingToDelete = recordingThree;
       }
     try {
-      // this for whatever reason isnt working ?? so uh just setting them back to null 
-      // (TODO) actually delete them later on
+      // this for whatever reason the bottom two lines arent working ?? so uh just setting them back to null 
+      // (TODO) actually delete them later on because right now we're just setting a new recording and the old file is still there
       // const info = await FileSystem.getInfoAsync(recordingToDelete.getURI());
       // await FileSystem.deleteAsync(info.uri);
       let recordingToDelete;
@@ -222,18 +233,21 @@ export default function CreateProfile() {
         setRecordingOneIsPlaying(false);
         recordingOne = null;
         setRecordingOneLocation(null);
+        setRecordingOneRecording(null);
       }
       else if (number == 2){
         
         setRecordingTwoIsPlaying(false);
-        recordingOne = null;
+        recordingTwo = null;
         setRecordingTwoLocation(null);
+        setRecordingTwoRecording(null);
       }
       else if (number == 3){
         
         setRecordingThreeIsPlaying(false);
-        recordingOne = null;
+        recordingThree = null;
         setRecordingThreeLocation(null);
+        setRecordingThreeRecording(null);
       }
     } catch (error) {
       console.log("There was an error deleting recording file", error);
@@ -368,7 +382,7 @@ export default function CreateProfile() {
     }
   };
  
-  if (formSubmitted == false || formSubmitted == true) {
+  if (formSubmitted == false) {
     return (
       <View style={styles.formContainer}>
         <Text style={styles.subtitleText}>PATIENT SEARCH</Text>
@@ -381,6 +395,7 @@ export default function CreateProfile() {
           setValue={setValue}
           setItems={setPatients}
         />
+        <Text></Text>
         <Text style={styles.subtitleText}>FAMILIAR PERSON'S FIRST NAME</Text>
         <TextInput
           style={styles.input}
@@ -394,7 +409,9 @@ export default function CreateProfile() {
           value={lastNameFP}
         />
         <Text style={styles.subtitleText}>ADD PHOTO</Text>
-        <Text style={styles.text}>Take 1 photo from the shoulder up. </Text>
+        <Text style={styles.text}>Image Preview: </Text>
+        <View style={{flexDirection:"row"}}>
+          <View style={{flex:1}}>
         <View style={imageUploaderStyles.container}>
           {image && (
             <Image
@@ -414,19 +431,22 @@ export default function CreateProfile() {
             </TouchableOpacity>
           </View>
         </View>
-        <View>
-          <Button
-          style={styles.buttonStyling}
-          backgroundColor="light grey"
-          title="Open Camera"
-          textColor="black"
-          rippleColor="blue"
-          onPress={() => takeImageWithCamera()}
-        /> 
         </View>
+        <View style={{position:"absolute", left:"30%", top:"50%"}}>
+          <Text style={{fontSize:"20"}}>OR</Text>
+          </View>
+        <View style={{position:"absolute", left:"40%", top:"45%"}}>
+          <Pressable
+          style={styles.regularButtonStyling}
+          onPress={() => takeImageWithCamera()}
+        >
+          <Text style={styles.regularButtonTextStyling}>Open Camera</Text>
+          </Pressable> 
+        </View>
+        </View>
+        <Text></Text>
         <Text style={styles.subtitleText}>Voice Recordings</Text>
-        {/* <Text style={styles.text}>Take 3 different voice recordings.</Text>
-        <Text style={styles.subHeadingText}>Voice Recording 1: Right now it is 2:40 PM on January 17th 2023.</Text> */}
+        <Text style={styles.subHeadingText}>Voice Recording 1: Right now it is 2:40 PM on January 17th 2023.</Text>
         <View>
         <View>{! recordingOneLocation && 
               <Button
@@ -436,12 +456,18 @@ export default function CreateProfile() {
               }
             </View>
             {recordingOneLocation && (
-        <Button title={recordingOneIsPlaying != false ? "Play Recording One" : "Stop Playing Recording One"} onPress={()=>playRecording(1)}></Button>
+        <Button title={recordingOneIsPlaying == false ? "Play Recording One" : "Stop Playing Recording One"} onPress={recordingOneIsPlaying == false ? ()=>playRecording(1) : ()=>stopPlayingRecording(1)}></Button>
       )}
           {recordingOneLocation && (
         <Button title={"Delete Recording One"} onPress={() => deleteConfirmationAlert(1)}></Button>
       )}
       </View>
+      <View
+  style={{
+    borderBottomColor: 'black',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  }}
+/>
       <View>
         <View>{! recordingTwoLocation && 
               <Button
@@ -451,12 +477,18 @@ export default function CreateProfile() {
               }
             </View>
             {recordingTwoLocation && (
-        <Button title={recordingTwoIsPlaying != false ? "Play Recording Two" : "Stop Playing Recording Two"} onPress={()=>playRecording(2)}></Button>
+        <Button title={recordingTwoIsPlaying == false ? "Play Recording Two" : "Stop Playing Recording Two"} onPress={recordingTwoIsPlaying ==false ? ()=>playRecording(2) : ()=>stopPlayingRecording(2)}></Button>
       )}
           {recordingTwoLocation && (
         <Button title={"Delete Recording Two"} onPress={() => deleteConfirmationAlert(2)}></Button>
       )}
       </View>
+      <View
+  style={{
+    borderBottomColor: 'black',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  }}
+/>
       <View>
         <View>{! recordingThreeLocation && 
               <Button
@@ -466,13 +498,12 @@ export default function CreateProfile() {
               }
             </View>
             {recordingThreeLocation && (
-        <Button title={recordingThreeIsPlaying != false ? "Play Recording Three" : "Stop Playing Recording Three"} onPress={()=>playRecording(3)}></Button>
+        <Button title={recordingThreeIsPlaying == false ? "Play Recording Three" : "Stop Playing Recording Three"} onPress={recordingThreeIsPlaying ==false ? ()=>playRecording(3) : ()=>stopPlayingRecording(3)}></Button>
       )}
           {recordingThreeLocation && (
         <Button title={"Delete Recording Three"} onPress={() => deleteConfirmationAlert(3)}></Button>
       )}
-      </View>
-        <GooglePlayButton
+      <GooglePlayButton
           style={styles.buttonStyling}
           backgroundColor="#06038D"
           text="Submit"
@@ -481,56 +512,14 @@ export default function CreateProfile() {
           onPress={() => onSubmit()}
         />
       </View>
+        
+      </View>
+      
     );
   } else {
     return (
       <View style={styles.formContainer}>
-        <Text style={styles.subtitleText}>Form submitted!</Text>
-        {/* <TextInput
-          style={styles.input}
-          onChangeText={setPatient}
-          value={patient}
-        />
-        <Text style={styles.subtitleText}>FAMILIAR PERSON'S FIRST NAME</Text>
-        <TextInput
-          style={styles.input}
-          onChangeText={setFirstNameFP}
-          value={firstNameFP}
-        />
-        <Text style={styles.subtitleText}>FAMILIAR PERSON'S LAST NAME</Text>
-        <TextInput
-          style={styles.input}
-          onChangeText={setLastNameFP}
-          value={lastNameFP}
-        />
-        <Text style={styles.subtitleText}>ADD PHOTOS</Text>
-        <View style={imageUploaderStyles.container}>
-          {image && (
-            <Image
-              source={{ uri: image }}
-              style={{ width: 200, height: 200 }}
-            />
-          )}
-          <View style={imageUploaderStyles.uploadBtnContainer}>
-            <TouchableOpacity
-              onPress={addImage}
-              style={imageUploaderStyles.uploadBtn}
-            >
-              <Text style={imageUploaderStyles.uploadImageText}>
-                {image ? "Edit" : "Upload"} Image
-              </Text>
-              <AntDesign name="camera" size={20} color="black" />
-            </TouchableOpacity>
-          </View>
-        </View>
-        <GooglePlayButton
-          style={styles.buttonStyling}
-          backgroundColor="#06038D"
-          text="Submit"
-          textColor="#fff"
-          rippleColor="white"
-          onPress={() => onSubmit()}
-        /> */}
+        <Text style={{fontSize: 25, color: "#AAAAAA", fontStyle: "italic",textAlign:"center"}}>FP {firstNameFP} {lastNameFP} profile submitted!</Text>
       </View>
     );
   }
@@ -547,6 +536,7 @@ const imageUploaderStyles = StyleSheet.create({
     marginTop: 10,
     borderColor: "black",
     borderWidth: 1,
+    
   },
   uploadBtnContainer: {
     opacity: 0.7,
@@ -571,11 +561,13 @@ const imageUploaderStyles = StyleSheet.create({
 const styles = StyleSheet.create({
   container: {
     //   flex: 1,
+    height:"90%",
     backgroundColor: "#fff",
     alignItems: "center",
     paddingTop: "10%",
   },
   formContainer: {
+    height:"100%",
     flex: 1,
     justifyContent: "center",
     paddingLeft: "2%",
@@ -606,7 +598,26 @@ const styles = StyleSheet.create({
   buttonStyling: {
     marginTop: 20,
     marginBottom: 10,
+    position:"absolute",
+    width:"100%",
+    bottom: -80, // dont @ me, i'll change this later
     borderRadius: 15,
+  },
+    regularButtonStyling: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 4,
+    elevation: 3,
+    backgroundColor: '#06038D',
+  },
+  regularButtonTextStyling: {
+    fontSize: 16,
+    lineHeight: 21,
+    fontWeight: 'bold',
+    letterSpacing: 0.25,
+    color: 'white',
   },
   input: {
     height: 50,
