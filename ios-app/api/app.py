@@ -557,7 +557,7 @@ def insert_a_favourite_person(request):
         sql_input = (first_name, last_name, patient_id)
         res = cur.execute("INSERT INTO FavouritePersons(FirstName, LastName,  PatientID) VALUES (?,?,?)", sql_input)
     
-    # con.commit()
+    con.commit()
     return {"result":"Success"}
 
 @app.route("/db/favouritepersons", methods=["GET","POST"])
