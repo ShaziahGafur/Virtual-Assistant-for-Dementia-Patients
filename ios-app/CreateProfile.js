@@ -20,10 +20,32 @@ import * as ImagePicker from "expo-image-picker";
 import { Audio } from 'expo-av';
 import * as FileSystem from "expo-file-system";
 
-// import { REACT_APP_BACKEND_API } from "@env"
+import { REACT_APP_BACKEND_API } from "@env"
 
-const REACT_APP_BACKEND_API = "http://100.66.73.7:5000";
 console.log(REACT_APP_BACKEND_API);
+
+const recordingOptions = {
+  // android not currently in use, but parameters are required
+  android: {
+    extension: ".m4a",
+    outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_MPEG_4,
+    audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_AAC,
+    sampleRate: 44100,
+    numberOfChannels: 2,
+    bitRate: 128000,
+  },
+  ios: {
+    extension: ".wav",
+    audioQuality: Audio.RECORDING_OPTION_IOS_AUDIO_QUALITY_HIGH,
+    sampleRate: 44100,
+    numberOfChannels: 1,
+    bitRate: 128000,
+    linearPCMBitDepth: 16,
+    linearPCMIsBigEndian: false,
+    linearPCMIsFloat: false,
+  },
+};
+
 
 const fetchData = async () => {
   const header = {
@@ -39,6 +61,9 @@ const fetchData = async () => {
   return response.data;
 };
 
+let recordingOne = new Audio.Recording();
+let recordingTwo = new Audio.Recording();
+let recordingThree = new Audio.Recording();
 
 
 export default function CreateProfile() {
@@ -58,9 +83,9 @@ export default function CreateProfile() {
   const [recordingTwoIsPlaying, setRecordingTwoIsPlaying] = React.useState(false);
   const [recordingThreeIsPlaying, setRecordingThreeIsPlaying] = React.useState(false);
 
-  const [recordingOne, setRecordingOne] = React.useState(null);
-  const [recordingTwo, setRecordingTwo] = React.useState(null);
-  const [recordingThree, setRecordingThree] = React.useState(null);
+  const [recordingOneRecording, setRecordingOneRecording] = React.useState(null);
+  const [recordingTwoRecording, setRecordingTwoRecording] = React.useState(null);
+  const [recordingThreeRecording, setRecordingThreeRecording] = React.useState(null);
   
   const [recordingOneLocation, setRecordingOneLocation] = React.useState(null);
   const [recordingTwoLocation, setRecordingTwoLocation] = React.useState(null);
@@ -80,26 +105,26 @@ export default function CreateProfile() {
       if (number == 1){
         console.log("record 1");
         
-      const recordingOne = new Audio.Recording();
+      recordingOne = new Audio.Recording();
       await recordingOne.prepareToRecordAsync(recordingOptions);
       await recordingOne.startAsync();
-        setRecordingOne(recordingOne);
+        setRecordingOneRecording(recordingOne);
       }
       else if (number == 2){
         console.log("record 2");
 
-      const recordingTwo = new Audio.Recording();
+      recordingTwo = new Audio.Recording();
       await recordingTwo.prepareToRecordAsync(recordingOptions);
       await recordingTwo.startAsync();
-        setRecordingTwo(recordingTwo);
+        setRecordingTwoRecording(recordingTwo);
       }
       else if (number == 3){
         console.log("record 3");
 
-      const recordingThree = new Audio.Recording();
+      recordingThree = new Audio.Recording();
       await recordingThree.prepareToRecordAsync(recordingOptions);
       await recordingThree.startAsync();
-        setRecordingThree(recordingThree);
+        setRecordingThreeRecording(recordingThree);
       }
       console.log("Recording started");
     } catch (err) {
@@ -195,19 +220,19 @@ export default function CreateProfile() {
       let recordingToDelete;
         if (number == 1){
         setRecordingOneIsPlaying(false);
-        setRecordingOne(null);
+        recordingOne = null;
         setRecordingOneLocation(null);
       }
       else if (number == 2){
         
         setRecordingTwoIsPlaying(false);
-        setRecordingTwo(null);
+        recordingOne = null;
         setRecordingTwoLocation(null);
       }
       else if (number == 3){
         
         setRecordingThreeIsPlaying(false);
-        setRecordingThree(null);
+        recordingOne = null;
         setRecordingThreeLocation(null);
       }
     } catch (error) {
@@ -250,6 +275,10 @@ export default function CreateProfile() {
     console.log(JSON.stringify(_image));
     if (!_image.cancelled) {
       setImage(_image.uri);
+      const wholeFileName = _image.url;
+      const fileName = _image.uri.split('/').pop();
+      const fileType = fileName.split('.').pop();
+      console.log("image", wholeFileName, fileName, fileType);
     }
   };
 
@@ -267,7 +296,10 @@ export default function CreateProfile() {
 
     if (!result.cancelled) {
       setImage(result.uri);
-      console.log(result.uri);
+      const wholeFileName = result.url;
+      const fileName = result.uri.split('/').pop();
+      const fileType = fileName.split('.').pop();
+      console.log("image", wholeFileName, fileName, fileType);
     }
   };
 
@@ -281,12 +313,9 @@ export default function CreateProfile() {
       patientID: value,
     };
     const formData = new FormData();
-
-    let axios_files = [];
-
       const photo_file = {
         image,
-        type: "image/jpeg",
+        type: "image/jpg",
         name: "photo",
       };
       
@@ -312,24 +341,21 @@ export default function CreateProfile() {
         type: "audio/x-wav",
         name: "recording 3",
       };
-      axios_files.push(photo_file);
-      axios_files.push(recording_one_file);
-      axios_files.push(recording_two_file);
-      axios_files.push(recording_three_file);
-      console.log(FP_info)
+      console.log(recording_one_file);
       formData.append("recordingOneFile", recording_one_file);
       formData.append("recordingTwoFile", recording_two_file);
       formData.append("recordingThreeFile", recording_three_file);
       formData.append("photoFile", photo_file);
 
-      // formData.append("content", FP_info);
-      // remember you can't add an object to a form data if its not a file, so you need to following for loop
+      formData.append("content", FP_info);
+      //remember you can't add an object to a form data if its not a file, so you need to following for loop
       for ( var key in FP_info ) {
     formData.append(key, FP_info[key]);
 }
+      let str = JSON.stringify(formData);
+
     const response = await axios.post(
       REACT_APP_BACKEND_API + "/db/favouritepersons",
-      // body,
       formData,
       {
         headers: header,
@@ -343,7 +369,7 @@ export default function CreateProfile() {
     }
   };
  
-  if (formSubmitted == false ) {
+  if (formSubmitted == false || formSubmitted == true) {
     return (
       <View style={styles.formContainer}>
         <Text style={styles.subtitleText}>PATIENT SEARCH</Text>
@@ -405,8 +431,8 @@ export default function CreateProfile() {
         <View>
         <View>{! recordingOneLocation && 
               <Button
-                title={recordingOne ? 'Stop Recording One' : 'Start Recording One'}
-                onPress={recordingOne ? ()=>stopRecording(1) : ()=>startRecording(1)}
+                title={recordingOneRecording ? 'Stop Recording One' : 'Start Recording One'}
+                onPress={recordingOneRecording ? ()=>stopRecording(1) : ()=>startRecording(1)}
               />
               }
             </View>
@@ -420,8 +446,8 @@ export default function CreateProfile() {
       <View>
         <View>{! recordingTwoLocation && 
               <Button
-                title={recordingTwo ? 'Stop Recording Two' : 'Start Recording Two'}
-                onPress={recordingTwo ? ()=>stopRecording(2) : ()=>startRecording(2)}
+                title={recordingTwoRecording ? 'Stop Recording Two' : 'Start Recording Two'}
+                onPress={recordingTwoRecording ? ()=>stopRecording(2) : ()=>startRecording(2)}
               />
               }
             </View>
@@ -435,8 +461,8 @@ export default function CreateProfile() {
       <View>
         <View>{! recordingThreeLocation && 
               <Button
-                title={recordingThree ? 'Stop Recording Three' : 'Start Recording Three'}
-                onPress={recordingThree ? ()=>stopRecording(3) : ()=>startRecording(3)}
+                title={recordingThreeRecording ? 'Stop Recording Three' : 'Start Recording Three'}
+                onPress={recordingThreeRecording ? ()=>stopRecording(3) : ()=>startRecording(3)}
               />
               }
             </View>
@@ -593,25 +619,3 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
   },
 });
-
-const recordingOptions = {
-  // android not currently in use, but parameters are required
-  android: {
-    extension: ".m4a",
-    outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_MPEG_4,
-    audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_AAC,
-    sampleRate: 44100,
-    numberOfChannels: 2,
-    bitRate: 128000,
-  },
-  ios: {
-    extension: ".wav",
-    audioQuality: Audio.RECORDING_OPTION_IOS_AUDIO_QUALITY_HIGH,
-    sampleRate: 44100,
-    numberOfChannels: 1,
-    bitRate: 128000,
-    linearPCMBitDepth: 16,
-    linearPCMIsBigEndian: false,
-    linearPCMIsFloat: false,
-  },
-};
