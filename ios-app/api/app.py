@@ -453,94 +453,89 @@ def insert_a_favourite_person(request):
     
     photo = files["photoFile"]
     recording_one = files["recordingOneFile"]
-    print(recording_one)
     recording_two = files["recordingTwoFile"]
     recording_three = files["recordingThreeFile"]
 
     
     request_data = request.form or request.get_json()
-    # # print(request_data)
-    # # print(request_data["content"])
 
-    favourite_person_info = request_data
-    # # favourite_person_info = request_data.content
-    # # favourite_person_info = request.content
+    favourite_person_info = dict(request_data)
 
     first_name = favourite_person_info["firstName"]
     last_name = favourite_person_info["lastName"]
     patient_id = favourite_person_info["patientID"]
     
+    google_bucket_link = first_name + last_name+ "/"
+    favourite_person_info["pictureLink"] = google_bucket_link
+    favourite_person_info["recordingLink"] =  google_bucket_link
+    
     # this needs to be unique but its currently not
     # save the photo
     # also need to check the type of the photo too :')
     stored_photo_file = os.getcwd() + r"/tmp/" + photo.filename + ".jpg"
-
     photo.save(stored_photo_file)
-
-    # # audio_file_name = photo.filename +'.wav'
     
     if photo:
         storage_client = storage.Client()
         bucket = storage_client.bucket(FP_FORM_BUCKET_NAME)
         # Upload file to Google Bucket (the "familiar-person-form-data" one)
-        blob = bucket.blob(first_name + last_name+ "/" + photo.filename) 
+        blob = bucket.blob(google_bucket_link+ photo.filename) 
         blob.upload_from_filename(stored_photo_file)
     
     # save the recording 1
     stored_recording_one_file = os.getcwd() + r"/tmp/" + recording_one.filename + ".wav"
-    # print(stored_recording_one_file)
-    # recording_one.seek(0)
     recording_one.save(stored_recording_one_file)
 
     if recording_one:
         storage_client = storage.Client()
         bucket = storage_client.bucket(FP_FORM_BUCKET_NAME)
         # Upload file to Google Bucket (the "familiar-person-form-data" one)
-        blob = bucket.blob(first_name + last_name+ "/" +recording_one.filename) 
+        blob = bucket.blob(google_bucket_link+recording_one.filename) 
         blob.upload_from_filename(stored_recording_one_file)
 
     # save the recording 2
     stored_recording_two_file = os.getcwd() + r"/tmp/" + recording_two.filename + ".wav"
-    # print(stored_recording_one_file)
-    # recording_one.seek(0)
     recording_two.save(stored_recording_two_file)
 
     if recording_two:
         storage_client = storage.Client()
         bucket = storage_client.bucket(FP_FORM_BUCKET_NAME)
         # Upload file to Google Bucket (the "familiar-person-form-data" one)
-        blob = bucket.blob(first_name + last_name+ "/" +recording_two.filename) 
+        blob = bucket.blob(google_bucket_link +recording_two.filename) 
         blob.upload_from_filename(stored_recording_two_file)
 
     # save the recording 3
     stored_recording_three_file = os.getcwd() + r"/tmp/" + recording_three.filename + ".wav"
-    # print(stored_recording_one_file)
-    # recording_one.seek(0)
     recording_three.save(stored_recording_three_file)
 
     if recording_three:
         storage_client = storage.Client()
         bucket = storage_client.bucket(FP_FORM_BUCKET_NAME)
         # Upload file to Google Bucket (the "familiar-person-form-data" one)
-        blob = bucket.blob(first_name + last_name+ "/" +recording_three.filename) 
+        blob = bucket.blob(google_bucket_link+recording_three.filename) 
         blob.upload_from_filename(stored_recording_three_file)
 
     # @Ruqhia you can either call your endpoint here (since they're all in Google Bucket)
     # or at the end of the function
 
+    # remove the 4 created files
+    os.remove(os.getcwd() + r"/tmp/" +"photo.jpg")
+    os.remove(os.getcwd() + r"/tmp/" +"recording_1.wav")
+    os.remove(os.getcwd() + r"/tmp/" +"recording_2.wav")
+    os.remove(os.getcwd() + r"/tmp/" +"recording_3.wav")
+
     con = sqlite3.connect(DATABASE)
     cur = con.cursor()
 
-
-
     print(first_name, last_name, patient_id)
+
 
     # may need to create the picture link and recording link here. 
 
     if "pictureLink" in favourite_person_info.keys() and "recordingLink" in favourite_person_info.keys():
         picture_link = favourite_person_info["pictureLink"]
         recording_link = favourite_person_info["recordingLink"]
-        sql_input = (first_name, last_name,  patient_id, picture_link, recording_link)
+        sql_input = (first_name, last_name, patient_id, picture_link, recording_link)
         res = cur.execute("INSERT INTO FavouritePersons(FirstName, LastName, PatientID, PictureLink, RecordingLink) VALUES (?,?,?,?,?)", sql_input)
 
     elif "pictureLink"  in favourite_person_info.keys() and "recordingLink" not in favourite_person_info.keys():
