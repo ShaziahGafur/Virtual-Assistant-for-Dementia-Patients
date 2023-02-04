@@ -25,7 +25,7 @@ Set up a virtual environment (or use mine):
 
 Set up a virtual environment by following [virtualenv documentation](https://docs.python.org/3/library/venv.html). You will need to pip install everything again. I'll make a requirements.txt soon. 
 
-To enter the virtual environment: (on Windows) `env\Scripts\activate` inside the api directory. You should see "(env)" in front of all your terminal cmds.
+To enter the virtual environment: (on Windows) `env\Scripts\activate` inside the api directory. On Mac, 'source env/bin/activate'. You should see "(env)" in front of all your terminal cmds.
 
 To deactivate the virtual environment: `deactivate`. The "(env)" should disappear.
 
@@ -48,7 +48,7 @@ Hopefully everything is now set up.
 
 Start another terminal, and leave the Ngrok one open. cd into the Virtual-Assistant ..../ios-app/api folder. (This might be \ instead sorry I'll double check this)
 
-Start the virtual environment: `env\Scripts\activate`
+Start the virtual environment: `env\Scripts\activate` for Windows. On Mac, 'source env/bin/activate'.
 
 Start the back-end app by: `flask run --host=0.0.0.0`. This should dynamically refresh when you Ctrl-S on the app.py file so you don't need to stop and restart every time. Check that this is working by typing `localhost:5000/time` in your browser. You shouldn't get a 404 page.
 
