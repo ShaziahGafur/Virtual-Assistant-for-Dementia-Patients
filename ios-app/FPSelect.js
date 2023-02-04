@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { REACT_APP_BACKEND_API } from "@env";
+import { REACT_APP_BACKEND_API } from "@env"
 import { GooglePlayButton } from "@freakycoder/react-native-button";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";

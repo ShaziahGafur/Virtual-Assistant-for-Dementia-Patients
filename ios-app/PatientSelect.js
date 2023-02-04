@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
-import { REACT_APP_BACKEND_API } from "@env";
+import { REACT_APP_BACKEND_API } from "@env"
 import { GooglePlayButton } from "@freakycoder/react-native-button";
 import axios from "axios";
 import FPSelect from "./FPSelect";
