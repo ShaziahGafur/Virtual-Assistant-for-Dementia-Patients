@@ -1,4 +1,6 @@
 import time
+from datetime import date, datetime
+from pytz import timezone
 from flask import Flask, request
 from flask_cors import CORS, cross_origin
 from config import *
@@ -21,14 +23,25 @@ import re
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
+unused_prompts = []
 p_name = 'Mirza'
 fp_name = 'Shaziah'
 hospital = 'North York General Hospital'
-date = 'Sunday, November 13th, 2022'
-month = 'November'
-year = '2022'
-season = 'fall'
-unused_prompts = ["Do you know where you are?", "Do you know what month it is?"]
+
+tz = timezone('EST')
+date_today = datetime.now(tz).strftime("%B %d, %Y")
+month = datetime.now(tz).strftime("%B")
+year = datetime.now(tz).strftime("%Y")
+
+# code to get season from: https://stackoverflow.com/a/28688724
+year_int = datetime.now(tz).year
+seasons = [('winter', (date(year_int,  1,  1),  date(year_int,  3, 20))),
+           ('spring', (date(year_int,  3, 21),  date(year_int,  6, 20))),
+           ('summer', (date(year_int,  6, 21),  date(year_int,  9, 22))),
+           ('fall', (date(year_int,  9, 23),  date(year_int, 12, 20))),
+           ('winter', (date(year_int, 12, 21),  date(year_int, 12, 31)))]
+season = next(season for season, (start, end) in seasons
+                if start <= datetime.today().date() <= end)
 
 @app.route('/time')
 @cross_origin()
@@ -92,21 +105,20 @@ def transcribe_audio(request):
 
         audio_file_name = wav_file.filename +'.wav'
         
-        bucket_name = BUCKET_NAME
+        # bucket_name = BUCKET_NAME
 
-        if wav_file:
-            storage_client = storage.Client()
-            bucket = storage_client.bucket(bucket_name)
-            # Upload file to Google Bucket (the indigo-replica-365820.appspot.com one)
-            blob = bucket.blob(wav_file.filename) 
-            blob.upload_from_filename(stored_file)
+        # if wav_file:
+        #     storage_client = storage.Client()
+        #     bucket = storage_client.bucket(bucket_name)
+        #     # Upload file to Google Bucket (the indigo-replica-365820.appspot.com one)
+        #     blob = bucket.blob(wav_file.filename) 
+        #     blob.upload_from_filename(stored_file)
 
         with open(stored_file, "rb") as audio_file:
             content = audio_file.read()
 
         ## pull from the local file on the server instead, probably will be faster
         audio = speech.RecognitionAudio(content = content)
-        # print(audio)
 
         config = speech.RecognitionConfig(
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
@@ -116,7 +128,7 @@ def transcribe_audio(request):
         )
 
         response = client.recognize(config=config, audio=audio)
-        # print(response.results)
+        print(response.results)
         for result in response.results:
             transcript += result.alternatives[0].transcript
             # return {"Transcript": result.alternatives[0].transcript}
@@ -134,10 +146,10 @@ def download_media(decision):
     FPID = 1 # FP's ID for that particular patient
     prompt = decision # Prompt 1 was selected, i.e. "How are you doing?"
     prompt = prompt.replace('?', '')
-    # print("prompt: ", prompt)
+    print("prompt: ", prompt)
 
     try:
-        bucket_name = "familiar-person-data" 
+        bucket_name = "familiar-person" 
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_APPLICATION_CREDENTIALS
 
         storage_client = storage.Client()
@@ -163,15 +175,15 @@ def download_media(decision):
         # Downloading video and audio clips from bucket
         blob_audio.download_to_filename(destination_file_name_audio, start=0, end=end_byte)
 
-        # print("\n[SUCCESS] Downloaded bytes {} to {} of audio object {} from bucket {} to local file {}.".format(
-        #     start_byte, end_byte, source_blob_name_audio, bucket_name, destination_file_name_audio
-        # ))
+        print("\n[SUCCESS] Downloaded bytes {} to {} of audio object {} from bucket {} to local file {}.".format(
+            start_byte, end_byte, source_blob_name_audio, bucket_name, destination_file_name_audio
+        ))
 
         blob_video.download_to_filename(destination_file_name_video, start=0, end=end_byte)
 
-        # print("\n[SUCCESS] Downloaded bytes {} to {} of video object {} from bucket {} to local file {}.".format(
-        #     start_byte, end_byte, source_blob_name_video, bucket_name, destination_file_name_video
-        # ))
+        print("\n[SUCCESS] Downloaded bytes {} to {} of video object {} from bucket {} to local file {}.".format(
+            start_byte, end_byte, source_blob_name_video, bucket_name, destination_file_name_video
+        ))
 
     except Exception as e: 
         # if str(e).startswith('404'):
@@ -183,7 +195,7 @@ def download_media(decision):
         #     print(e)
 
         # Play default video 
-        # print("Retrieving default video & audio.\n")
+        print("Retrieving default video & audio.\n")
         
         # Set path to download audio file from
         source_blob_name_audio = 'Patients/'+str(patientID)+'/Familiar Person/'+str(FPID)+"/Audio/Default.mp3"
@@ -196,15 +208,15 @@ def download_media(decision):
         # Downloading video and audio clips from bucket
         blob_audio.download_to_filename(destination_file_name_audio, start=0, end=end_byte)
 
-        # print("\n[SUCCESS] Downloaded bytes {} to {} of DEFAULT audio object {} from bucket {} to local file {}.".format(
-        #     start_byte, end_byte, source_blob_name_audio, bucket_name, destination_file_name_audio
-        # ))
+        print("\n[SUCCESS] Downloaded bytes {} to {} of DEFAULT audio object {} from bucket {} to local file {}.".format(
+            start_byte, end_byte, source_blob_name_audio, bucket_name, destination_file_name_audio
+        ))
 
         blob_video.download_to_filename(destination_file_name_video, start=0, end=end_byte)
 
-        # print("\n[SUCCESS] Downloaded bytes {} to {} of DEFAULT video object {} from bucket {} to local file {}.".format(
-        #     start_byte, end_byte, source_blob_name_video, bucket_name, destination_file_name_video
-        # ))
+        print("\n[SUCCESS] Downloaded bytes {} to {} of DEFAULT video object {} from bucket {} to local file {}.".format(
+            start_byte, end_byte, source_blob_name_video, bucket_name, destination_file_name_video
+        ))
 
 
     # ## Trim/pad audio file to match video length
@@ -249,7 +261,7 @@ def download_media(decision):
 
     # audio_clip = AudioFileClip(audio_out_file)
 
-    # # print("audio clip:", audio_clip)
+    # print("audio clip:", audio_clip)
 
     # new_audio_clip = CompositeAudioClip([audio_clip])
 
@@ -282,39 +294,38 @@ def decision_setup():
              "Hi {0}, nice to see you again!".format(p_name)]
 
     answers = {
-        # "who are you?" : ["I am {0}.".format(fp_name)],
-        # "where am i?" : ["You are in {0}.".format(hospital)],
-        "why am i here?" : ["You are in hospital because you are sick."],
+        # "who are you" : ["I am {0}.".format(fp_name)],
+        "where am i" : ["You are in {0}.".format(hospital)],
         "why am i here" : ["You are in hospital because you are sick."],
-        # "what day is it today?" : ["Today is {0}.".format(date)],
-        # "what month is it?" : ["It is {0}.".format(month)],
-        # "what year is it?" : ["It is the year {0}.".format(year)],
-        # "what season is it?" : ["It is {0} now.".format(season)],
+        # "what day is it today" : ["Today is {0}.".format(date_today)],
+        "what month is it" : ["It is {0}.".format(month)],
+        "what year is it" : ["It is the year {0}.".format(year)],
+        "what season is it" : ["It is {0} now.".format(season)],
     }
 
     prompts = ["How are you doing today?",
             "Do you know where you are?",
-            # "Do you know what year it is?",
+            "Do you know what year it is?",
             "Do you know what month it is?"
-            # "Do you know what season it is?",
-            # "How many children do you have?",
-            # "Do you have a spouse? What is their name?",
-            # "Where do you live?",
-            # "What are your hobbies?",
-            # "Are you feeling scared or afraid? Tell me more about how you are feeling.",
-            # "Do you like to read?",
-            # "Do you like to sew?",
-            # "Do you like to exercise?",
-            # "Tell me about your friends in school.",
-            # "Tell me about your children."
+            "Do you know what season it is?",
+            "How many children do you have?",
+            "Do you have a spouse? What is their name?",
+            "Where do you live?",
+            "What are your hobbies?",
+            "Are you feeling scared or afraid? Tell me more about how you are feeling.",
+            "Do you like to read?",
+            "Do you like to sew?",
+            "Do you like to exercise?",
+            "Tell me about your friends in school.",
+            "Tell me about your children."
             ]
 
     matching_questions = {
-        # ('where', 'where am i'): "where am i?"
-        # ('what day', 'what is today', 'what\'s today\'s date', 'what is today\'s date', 'what date is it today', 'which day'): "what day is it today?",
-        # ('what month', 'which month'): "what month is it?",
-        # ('what year', 'which year'): "what year is it?",
-        # ('what season', 'which season'): "what season is it?"
+        ('where', 'where am i'): "where am i",
+        ('what day', 'what is today', 'what\'s today\'s date', 'what is today\'s date', 'what date is it today', 'which day'): "what day is it today",
+        ('what month', 'which month'): "what month is it",
+        ('what year', 'which year'): "what year is it",
+        ('what season', 'which season'): "what season is it"
     }
 
     matched_questions = {}
@@ -336,25 +347,41 @@ def find_matching_question(matched_questions, phrase):
 def get_response(answers, prompts, matched_questions, p_input):
   global unused_prompts
   phrases = re.split("\? |\. |\! |\, ", p_input.lower())
+  # re.split() does not remove last phrase's punctuation
+  # if it exists, remove question mark at the end of last question to match ones in "answers" list
+  phrases[-1] = phrases[-1].replace('?', '')
   response = ""
 #   print("phrases: ", phrases)
 
-  # only answering the last question
-#   print("phrases[-1]: ", phrases[-1])
-  question = find_matching_question(matched_questions, phrases[-1])
-  if question in answers:
-    answer = random.choice(answers[question])
-    response = answer
-    # print("answer: ", answer)
-  else:
-    if not unused_prompts:
+  for phrase in phrases:
+    question = find_matching_question(matched_questions, phrase)
+    if question in answers:
+      response = response + random.choice(answers[question]) + " "
+  
+  if not unused_prompts:
       unused_prompts = prompts.copy()
-    prompt = random.choice(unused_prompts)
-    unused_prompts.remove(prompt)
-    response = prompt
-    # print("prompt: ", prompt)
 
-  download_media(response)
+  prompt = random.choice(unused_prompts)
+  unused_prompts.remove(prompt)
+
+  response = response + prompt
+
+#   # only answering the last question
+#   print("phrases[-1]: ", phrases[-1])
+#   question = find_matching_question(matched_questions, phrases[-1])
+#   if question in answers:
+#     answer = random.choice(answers[question])
+#     response = answer
+#     print("answer: ", answer)
+#   else:
+#     if not unused_prompts:
+#       unused_prompts = prompts.copy()
+#     prompt = random.choice(unused_prompts)
+#     unused_prompts.remove(prompt)
+#     response = prompt
+#     print("prompt: ", prompt)
+
+  #download_media(prompt) # change to response after figuring out multiple video playback
 #   download_media("Do you know where you are?")
   #response = response + prompt
 
@@ -364,6 +391,7 @@ def get_response(answers, prompts, matched_questions, p_input):
 
 @app.route('/generate_decision', methods=["POST"])
 def generate_decision():
+    download_media("How are you doing today?")
     transcript = transcribe_audio(request)
     return_value = {"Return":"Failure"}
     print("***TRANSCRIPT: " + transcript["Transcript"] + "\n")
@@ -422,7 +450,7 @@ def patients():
     if request.method == "GET":
         return get_all_patients()
     elif request.method == "POST":
-        # print("post!")
+        print("post!")
         return insert_a_patient(request)
 
 def get_all_favourite_persons():
