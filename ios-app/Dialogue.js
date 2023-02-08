@@ -41,7 +41,7 @@ export default function Dialogue() {
   const [sound, setSound] = React.useState();
   const [isFetching, setIsFetching] = React.useState(false);
 
-  const THIRTY_S = 60000 / 6; // this was 2 before
+  const THIRTY_S = 8 * 1000; // this was 2 before
 
   useEffect(() => {
     startAsyncRecording = async () => {
@@ -56,23 +56,26 @@ export default function Dialogue() {
       await getRecordingTranscription();
     };
 
-    startAsyncRecording();
-    const interval = setInterval(() => {
-      if (stepOne == false || stepOne == undefined) {
-        console.log("in the step of stopping recording + get transcript");
-        stopAsyncRecording();
-        asyncGetTranscription();
-        stepOne = true;
-      } else {
-        console.log("in the step of rerecording");
-        startAsyncRecording();
-        stepOne = false;
-      }
-    }, THIRTY_S);
 
-    return () => {
-      clearInterval(interval);
-    };
+    setTimeout(function() {
+      startAsyncRecording();
+      const interval = setInterval(() => {
+        if (stepOne == false || stepOne == undefined) {
+          console.log("in the step of stopping recording + get transcript");
+          stopAsyncRecording();
+          asyncGetTranscription();
+          stepOne = true;
+        } else {
+          console.log("in the step of rerecording");
+          startAsyncRecording();
+          stepOne = false;
+        }
+      }, THIRTY_S);
+
+      return () => {
+        clearInterval(interval);
+      };
+    }, 3000);
   }, []);
 
   async function startRecording() {
