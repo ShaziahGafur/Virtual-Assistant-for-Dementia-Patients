@@ -71,27 +71,44 @@
 // });
 
 import * as React from 'react';
-import { Text, View, StyleSheet, Button, ImageBackground } from 'react-native';
+import { Text, View, StyleSheet, Button, ImageBackground, Background } from 'react-native';
 import { Audio, Video, AVPlaybackStatus } from 'expo-av';
 import { setStatusBarBackgroundColor, setStatusAsync } from 'expo-status-bar';
 import * as FileSystem from 'expo-file-system';
 import axios from 'axios';
 
+const videoSources = [{path: require("./api/tmp/media_from_bucket/fptestvideo1.mp4"), id: 1},
+{path: require("./api/tmp/media_from_bucket/fptestvideo2.mp4"), id: 2} ];
+
 export default function PlayAudioVideo() {
   const video = React.useRef(null);
   const [status, setStatus] = React.useState({});
+  const [videoSource, setVideoSource] = React.useState({});
+
+  const onButton = () => {
+    console.log("videoname", videoSource.id);
+    if (videoSource.id == 1){
+      setVideoSource(videoSources[1]);
+    }
+    else{
+      setVideoSource(videoSources[0]);
+    }
+  }
 
   return (
     <View style={styles.container}>
       <ImageBackground source={require("./api/tmp/media_from_bucket/fpphoto.png")} resizeMode="contain"  style={styles.backgroundPhoto}>
+      
       <Video
+        key={videoSource}
         ref={video}
         style={styles.video}
-        source={require("./api/tmp/media_from_bucket/new_video_clip.mp4")}
+        source={videoSource.path}
         resizeMode="contain"
         onPlaybackStatusUpdate={status => setStatus(() => status)}
         onLoad={() => {video.current.setPositionAsync(0); video.current.playAsync()}}
         shouldPlay="True"
+        // onEnd={() => onButton()}
       />
       </ImageBackground>
        <Button title={"press me"} onPress={(e) => onButton()}></Button>
