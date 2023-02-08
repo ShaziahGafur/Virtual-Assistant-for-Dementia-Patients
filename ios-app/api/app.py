@@ -17,8 +17,7 @@ from google.cloud import speech
 from google.cloud import storage
 import glob, os
 import io
-import random
-import re
+import random, re
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -144,7 +143,8 @@ def download_media(decision):
 
     bucket = storage_client.bucket(bucket_name)
 
-    video_clips = []
+    # video_clips = []
+    video_clip_filenames = []
 
     for prompt in prompts:
         print("prompt: ", prompt)
@@ -197,7 +197,8 @@ def download_media(decision):
                             temp_audiofile='temp-audio.m4a', 
                             remove_temp=True)
             
-            video_clips.append(video_with_new_audio)
+            # video_clips.append(video_with_new_audio)
+            video_clip_filenames.append(video_out_file)
 
         except Exception as e: 
             # if str(e).startswith('404'):
@@ -232,8 +233,10 @@ def download_media(decision):
             #     start_byte, end_byte, source_blob_name_video, bucket_name, destination_file_name_video
             # ))
 
-    if len(video_clips) > 1:
-        final_video = concatenate_videoclips(video_clips)
+    if len(video_clip_filenames) > 1:
+        clips = [VideoFileClip(c) for c in video_clip_filenames]
+        
+        final_video = concatenate_videoclips(clips)
         final_video.write_videofile("tmp/media_from_bucket/new_video_clip.mp4",
                             codec='libx264', 
                             audio_codec='aac', 
