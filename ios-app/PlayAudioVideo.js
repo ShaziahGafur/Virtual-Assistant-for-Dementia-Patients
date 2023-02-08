@@ -71,12 +71,11 @@
 // });
 
 import * as React from 'react';
-import { Text, View, StyleSheet, Button } from 'react-native';
+import { Text, View, StyleSheet, Button, ImageBackground } from 'react-native';
 import { Audio, Video, AVPlaybackStatus } from 'expo-av';
 import { setStatusBarBackgroundColor, setStatusAsync } from 'expo-status-bar';
 import * as FileSystem from 'expo-file-system';
 import axios from 'axios';
-
 
 export default function PlayAudioVideo() {
   const video = React.useRef(null);
@@ -84,6 +83,7 @@ export default function PlayAudioVideo() {
 
   return (
     <View style={styles.container}>
+      <ImageBackground source={require("./api/tmp/media_from_bucket/fpphoto.jpg")} resizeMode="contain"  style={styles.backgroundPhoto}>
       <Video
         ref={video}
         style={styles.video}
@@ -93,21 +93,30 @@ export default function PlayAudioVideo() {
         onLoad={() => {video.current.setPositionAsync(0); video.current.playAsync()}}
         shouldPlay="True"
       />
-
+      </ImageBackground>
     </View>
   );
 }
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    backgroundColor: '#ecf0f1',
-    padding: 10,
+    // justifyContent: 'center',
+    // backgroundColor: '#ecf0f1',
+    // padding: 10,
   },
   video: {
     flex: 1,
+    // position:"absolute",
     justifyContent: 'center',
-    backgroundColor: '#ecf0f1',
+    // backgroundColor: '#ecf0f1',
     padding: 10, 
+  },
+  backgroundPhoto: {
+    flex: 1,
+    justifyContent: 'center',
+    // backgroundColor: '#ecf0f1',
+    // height:'90%',
+    // width:'90%',
+    // padding: 10, 
   }
 });
