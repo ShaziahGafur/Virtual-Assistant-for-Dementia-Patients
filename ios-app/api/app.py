@@ -85,6 +85,21 @@ def transcribe_sample_audio():
 
     return {"transcript": "error: EOF"}
 
+@app.route('/download_fp_media', methods=["POST"])
+def download_FP_media_dialogue(request):
+    printf("in download_FP_media_dialogue!!")
+    request_data = request.form or request.get_json()
+    request_info = dict(request_data)
+
+    patient_ID = request_info["patient_ID"]
+    FP_ID = request_info["patient_ID"]
+
+    print(patient_ID, FP_ID)
+
+    # download all the videos here
+    time.sleep(10) # sleeps for 10 seconds so i know that the loading screen works
+
+    return {"Result": "Success"}
 
 @app.route('/transcribe_audio', methods=["POST"])
 def transcribe_audio(request):

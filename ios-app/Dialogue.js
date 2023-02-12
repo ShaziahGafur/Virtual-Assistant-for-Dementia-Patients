@@ -29,6 +29,11 @@ const recordingOptions = {
   },
 };
 
+// pass these in later on
+const patient_ID = 1;
+const FP_ID = 1;
+let loadingScreen = true;
+
 let recording = new Audio.Recording();
 let stepOne;
 
@@ -56,7 +61,7 @@ export default function Dialogue() {
       await getRecordingTranscription();
     };
 
-
+    if (loadingScreen == false){
     setTimeout(function() {
       startAsyncRecording();
       const interval = setInterval(() => {
@@ -76,7 +81,35 @@ export default function Dialogue() {
         clearInterval(interval);
       };
     }, 3000);
+  }
+  else{
+    downloadFPMedia();
+  }
   }, []);
+
+  async function downloadFPMedia(){
+    const header = {
+      headers: { "Content-Type": "application/json" },
+    };
+    const body = {
+      patient_ID:patient_ID,
+      FP_ID:FP_ID
+    };
+    const response = await axios.post(
+      REACT_APP_BACKEND_API + "/download_fp_media",
+      body,
+      {
+        headers: header,
+        method: "POST",
+      }
+    );
+    const data = response.data;
+    console.log(data);
+    if (data["Result"] == "Success"){ // check if this actually waits 
+      console.log("All videos successfully downloaded, start call");
+      loadingScreen = false;
+    }
+  }
 
   async function startRecording() {
     recording = new Audio.Recording();
