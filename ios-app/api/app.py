@@ -5,6 +5,10 @@ from flask import Flask, request
 from flask_cors import CORS, cross_origin
 from config import *
 
+# Ellen needs this for some reason because of import errors, ignore this
+#import os
+#os.environ["IMAGEIO_FFMPEG_EXE"] = "/usr/bin/ffmpeg"
+
 import io
 from mutagen.mp3 import MP3
 from moviepy.editor import VideoFileClip, AudioFileClip, CompositeAudioClip, concatenate_videoclips
@@ -85,19 +89,15 @@ def transcribe_sample_audio():
 
     return {"transcript": "error: EOF"}
 
-@app.route('/download_fp_media', methods=["POST"])
-def download_FP_media_dialogue(request):
-    printf("in download_FP_media_dialogue!!")
-    request_data = request.form or request.get_json()
-    request_info = dict(request_data)
-
-    patient_ID = request_info["patient_ID"]
-    FP_ID = request_info["patient_ID"]
+@app.route('/download_fp_media', methods=["GET"])
+def download_FP_media_dialogue():
+    print("in download_FP_media_dialogue!!")
+    patient_ID = request.args.get("patient_ID")
+    FP_ID = request.args.get("FP_ID")
 
     print(patient_ID, FP_ID)
 
-    # download all the videos here
-    time.sleep(10) # sleeps for 10 seconds so i know that the loading screen works
+    # @ Mirza, download all the videos here
 
     return {"Result": "Success"}
 

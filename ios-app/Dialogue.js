@@ -5,8 +5,8 @@ import { Audio } from "expo-av";
 import { GooglePlayButton } from "@freakycoder/react-native-button";
 import axios from "axios";
 import PlayAudioVideo from "./PlayAudioVideo";
-
 console.log(REACT_APP_BACKEND_API);
+
 const recordingOptions = {
   // android not currently in use, but parameters are required
   android: {
@@ -32,7 +32,7 @@ const recordingOptions = {
 // pass these in later on
 const patient_ID = 1;
 const FP_ID = 1;
-let loadingScreen = true;
+let loadingScreen = false;
 
 let recording = new Audio.Recording();
 let stepOne;
@@ -61,7 +61,7 @@ export default function Dialogue() {
       await getRecordingTranscription();
     };
 
-    if (loadingScreen == false){
+    if (loadingScreen == true){
     setTimeout(function() {
       startAsyncRecording();
       const interval = setInterval(() => {
@@ -87,7 +87,7 @@ export default function Dialogue() {
   }
   }, []);
 
-  async function downloadFPMedia(){
+  function downloadFPMedia() {
     const header = {
       headers: { "Content-Type": "application/json" },
     };
@@ -95,20 +95,25 @@ export default function Dialogue() {
       patient_ID:patient_ID,
       FP_ID:FP_ID
     };
-    const response = await axios.post(
+    console.log(body);
+    const response = axios.get(
       REACT_APP_BACKEND_API + "/download_fp_media",
-      body,
       {
+        params: body,
         headers: header,
-        method: "POST",
+        method: "GET",
       }
+    ).then(
+      function (response) {
+        console.log(response.data);
+        if (response.data["Result"] == "Success"){ 
+          console.log("All videos successfully downloaded, start call");
+          loadingScreen = false;
+        }
+      } 
+    
     );
-    const data = response.data;
-    console.log(data);
-    if (data["Result"] == "Success"){ // check if this actually waits 
-      console.log("All videos successfully downloaded, start call");
-      loadingScreen = false;
-    }
+    
   }
 
   async function startRecording() {
