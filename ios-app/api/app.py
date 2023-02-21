@@ -5,10 +5,6 @@ from flask import Flask, request
 from flask_cors import CORS, cross_origin
 from config import *
 
-# Ellen needs this for some reason because of import errors, ignore this
-#import os
-#os.environ["IMAGEIO_FFMPEG_EXE"] = "/usr/bin/ffmpeg"
-
 import io
 from mutagen.mp3 import MP3
 from moviepy.editor import VideoFileClip, AudioFileClip, CompositeAudioClip, concatenate_videoclips
@@ -97,7 +93,21 @@ def download_FP_media_dialogue():
 
     print(patient_ID, FP_ID)
 
-    # @ Mirza, download all the videos here
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_APPLICATION_CREDENTIALS
+    client=storage.Client()
+    bucket_name = "familiar-person" 
+
+    folder="Patients/"+patient_ID+"/Familiar Person/"+FP_ID+"/Videos/"
+
+    # Retrieve all blobs with a prefix matching the folder
+    destination_dir = "tmp/media_from_bucket/fp_videos/"
+    bucket=client.get_bucket(bucket_name)
+    blobs=list(bucket.list_blobs(prefix=folder))
+    for blob in blobs:
+        if(not blob.name.endswith("/")):
+            file_name = blob.name.split("/")[-1]
+            print(file_name)
+            blob.download_to_filename(destination_dir+file_name)
 
     return {"Result": "Success"}
 

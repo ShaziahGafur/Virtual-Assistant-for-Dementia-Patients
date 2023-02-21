@@ -32,7 +32,6 @@ const recordingOptions = {
 // pass these in later on
 const patient_ID = 1;
 const FP_ID = 1;
-let loadingScreen = false;
 
 let recording = new Audio.Recording();
 let stepOne;
@@ -44,6 +43,7 @@ export default function Dialogue() {
   const [recordingLocation, setRecordingLocation] = React.useState("");
 
   const [sound, setSound] = React.useState();
+  const [loadingScreen, setLoadingScreen] = React.useState(true);
   const [isFetching, setIsFetching] = React.useState(false);
 
   const THIRTY_S = 8 * 1000; // this was 2 before
@@ -60,8 +60,10 @@ export default function Dialogue() {
     asyncGetTranscription = async () => {
       await getRecordingTranscription();
     };
-
     if (loadingScreen == true){
+    downloadFPMedia();
+    }
+    else{
     setTimeout(function() {
       startAsyncRecording();
       const interval = setInterval(() => {
@@ -82,12 +84,9 @@ export default function Dialogue() {
       };
     }, 3000);
   }
-  else{
-    downloadFPMedia();
-  }
-  }, []);
+  }, [loadingScreen]);
 
-  function downloadFPMedia() {
+  async function downloadFPMedia() {
     const header = {
       headers: { "Content-Type": "application/json" },
     };
@@ -96,24 +95,19 @@ export default function Dialogue() {
       FP_ID:FP_ID
     };
     console.log(body);
-    const response = axios.get(
+    const response = await axios.get(
       REACT_APP_BACKEND_API + "/download_fp_media",
       {
         params: body,
         headers: header,
         method: "GET",
       }
-    ).then(
-      function (response) {
-        console.log(response.data);
-        if (response.data["Result"] == "Success"){ 
-          console.log("All videos successfully downloaded, start call");
-          loadingScreen = false;
-        }
-      } 
-    
     );
-    
+    console.log(response.data);
+    if (response.data["Result"] == "Success"){ 
+      console.log("All videos successfully downloaded, start call");
+      setLoadingScreen(false);
+    }    
   }
 
   async function startRecording() {
@@ -181,8 +175,7 @@ export default function Dialogue() {
   return (
     <View style={styles.video}>
       {recording && <Text>Recording</Text>}
-      {<PlayAudioVideo></PlayAudioVideo>}
-      {/* { && <Text>Not Recording</Text>} */}
+      {<PlayAudioVideo loadingScreen={loadingScreen}></PlayAudioVideo>}
       {!isFetching && transcript && <Text>{transcript}</Text>}
     </View>
   );

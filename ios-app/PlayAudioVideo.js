@@ -71,16 +71,25 @@
 // });
 
 import * as React from 'react';
-import { Text, View, StyleSheet, Button, ImageBackground } from 'react-native';
+import { Text, View, StyleSheet, Button, ImageBackground, Image } from 'react-native';
 import { Audio, Video, AVPlaybackStatus } from 'expo-av';
 import { setStatusBarBackgroundColor, setStatusAsync } from 'expo-status-bar';
 import * as FileSystem from 'expo-file-system';
 import axios from 'axios';
+import loading from './assets/loading.gif';
 
-export default function PlayAudioVideo() {
+
+export default function PlayAudioVideo({loadingScreen}) {
   const video = React.useRef(null);
   const [status, setStatus] = React.useState({});
-
+  if (loadingScreen == true){
+    return (
+      <View style={styles.loadingContainer}>
+        <Image source={loading} style={styles.loadingGif} alt="loading..." />
+      </View>
+    );
+  }
+  else{
   return (
     <View style={styles.container}>
       <ImageBackground source={require("./api/tmp/media_from_bucket/fpphoto.jpg")} resizeMode="contain"  style={styles.backgroundPhoto}>
@@ -96,6 +105,7 @@ export default function PlayAudioVideo() {
       </ImageBackground>
     </View>
   );
+  }
 }
 const styles = StyleSheet.create({
   container: {
@@ -114,9 +124,16 @@ const styles = StyleSheet.create({
   backgroundPhoto: {
     flex: 1,
     justifyContent: 'center',
-    // backgroundColor: '#ecf0f1',
-    // height:'90%',
-    // width:'90%',
-    // padding: 10, 
+  },
+  loadingContainer:{
+    flex:1,
+    justifyContent:'center',
+    alignItems:'center',
+  },
+  loadingGif: {
+    flex: 1,
+    width: 50,
+    height: 50,
+    resizeMode: 'contain' 
   }
 });
