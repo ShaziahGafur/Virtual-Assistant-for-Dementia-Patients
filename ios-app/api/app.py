@@ -97,17 +97,44 @@ def download_FP_media_dialogue():
     client=storage.Client()
     bucket_name = "familiar-person" 
 
-    folder="Patients/"+patient_ID+"/Familiar Person/"+FP_ID+"/Videos/"
+    videos_folder="Patients/"+patient_ID+"/Familiar Person/"+FP_ID+"/Videos/"
+    audio_folder="Patients/"+patient_ID+"/Familiar Person/"+FP_ID+"/Audio/"
 
     # Retrieve all blobs with a prefix matching the folder
     destination_dir = "tmp/media_from_bucket/fp_videos/"
     bucket=client.get_bucket(bucket_name)
-    blobs=list(bucket.list_blobs(prefix=folder))
-    for blob in blobs:
+    video_blobs=list(bucket.list_blobs(prefix=videos_folder))
+    audio_blobs=list(bucket.list_blobs(prefix=audio_folder))
+
+    for blob in audio_blobs:
+        if(not blob.name.endswith("/")):
+            file_name = blob.name.split("/")[-1]
+            # only download mp3 files, not wav ones
+            if file_name[-4:] == ".mp3":
+                print(file_name)
+                blob.download_to_filename(destination_dir+file_name)
+
+    for blob in video_blobs:
         if(not blob.name.endswith("/")):
             file_name = blob.name.split("/")[-1]
             print(file_name)
-            blob.download_to_filename(destination_dir+file_name)
+            # download video from file bucket
+            file_path = destination_dir+file_name[:-4] # file path without .mp4
+            blob.download_to_filename(file_path + "_no_audio.mp4")
+
+            # create final video with audio
+            video_clip = VideoFileClip(file_path + "_no_audio.mp4")
+
+            video_with_audio = video_clip.set_audio(AudioFileClip(file_path + ".mp3"))
+            video_with_audio.write_videofile(file_path + ".mp4",
+                            codec='libx264',
+                            audio_codec='aac',
+                            temp_audiofile='temp-audio.m4a',
+                            remove_temp=True)
+
+            # remove clips that are no longer necessary
+            os.remove(file_path + "_no_audio.mp4")
+            os.remove(file_path + ".mp3")
 
     return {"Result": "Success"}
 
