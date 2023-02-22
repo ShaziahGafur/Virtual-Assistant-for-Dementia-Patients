@@ -136,6 +136,10 @@ def download_FP_media_dialogue():
             os.remove(file_path + "_no_audio.mp4")
             os.remove(file_path + ".mp3")
 
+    # set up initial greeting
+    shutil.copy(destination_dir+"How are you doing today.mp4", "tmp/media_from_bucket/")
+    os.rename("tmp/media_from_bucket/How are you doing today.mp4", "tmp/media_from_bucket/new_video_clip.mp4")
+
     return {"Result": "Success"}
 
 @app.route('/transcribe_audio', methods=["POST"])
