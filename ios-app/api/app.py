@@ -23,6 +23,9 @@ app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 unused_prompts = []
+answers = {}
+prompts_list = []
+matched_questions = {}
 p_name = 'Mirza'
 fp_name = 'Shaziah'
 hospital = 'North York General Hospital'
@@ -93,6 +96,8 @@ def download_FP_media_dialogue():
 
     print(patient_ID, FP_ID)
 
+    decision_setup()
+
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_APPLICATION_CREDENTIALS
     client=storage.Client()
     bucket_name = "familiar-person" 
@@ -139,6 +144,10 @@ def download_FP_media_dialogue():
     # set up initial greeting
     shutil.copy(destination_dir+"How are you doing today.mp4", "tmp/media_from_bucket/")
     os.rename("tmp/media_from_bucket/How are you doing today.mp4", "tmp/media_from_bucket/new_video_clip.mp4")
+
+    global unused_prompts
+    unused_prompts = prompts_list.copy()
+    unused_prompts.remove("How are you doing today?")
 
     return {"Result": "Success"}
 
@@ -216,6 +225,7 @@ def prepare_video(decision):
     return
 
 def decision_setup():
+    global answers, prompts_list, matched_questions
     greetings = ["Hi!",
              "Hello!",
              "Hey!",
@@ -232,7 +242,7 @@ def decision_setup():
         # "what season is it" : ["It is {0} now.".format(season)],
     }
 
-    prompts = ["How are you doing today?",
+    prompts_list = ["How are you doing today?",
             "Do you know where you are?",
             # "Do you know what year it is?",
             "Do you know what month it is?",
@@ -262,7 +272,7 @@ def decision_setup():
         for key in k:
             matched_questions[key] = v
     
-    return greetings, answers, prompts, matched_questions
+    return
 
 def find_matching_question(matched_questions, phrase):
   question = phrase
@@ -273,7 +283,7 @@ def find_matching_question(matched_questions, phrase):
   
   return question
 
-def get_response(answers, prompts, matched_questions, p_input):
+def get_response(p_input):
   global unused_prompts
   phrases = re.split("\? |\. |\! |\, ", p_input.lower())
   # re.split() does not remove last phrase's punctuation
@@ -282,13 +292,18 @@ def get_response(answers, prompts, matched_questions, p_input):
   response = ""
 #   print("phrases: ", phrases)
 
+#   print("answers: ", answers)
+#   print("prompts_list: ", prompts_list)
+#   print("answers: ", matched_questions)
+#   print("unused_prompts: ", unused_prompts)
+
   for phrase in phrases:
     question = find_matching_question(matched_questions, phrase)
     if question in answers:
       response = response + random.choice(answers[question]) + " "
   
   if not unused_prompts:
-      unused_prompts = prompts.copy()
+      unused_prompts = prompts_list.copy()
 
   prompt = random.choice(unused_prompts)
   unused_prompts.remove(prompt)
@@ -307,9 +322,8 @@ def generate_decision():
     print("***TRANSCRIPT: " + transcript["Transcript"] + "\n")
     # if transcript["Transcript"]:
     # call the decision functions
-    greetings, answers, prompts, matched_questions = decision_setup()
     # change return_value here
-    return_value = {"Return": get_response(answers, prompts, matched_questions, transcript["Transcript"])}
+    return_value = {"Return": get_response(transcript["Transcript"])}
     print("***CHOSEN RESPONSE:", return_value["Return"])
     return return_value
 
