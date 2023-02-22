@@ -15,7 +15,7 @@ from pydub.playback import play
 # Imports the Google Cloud client library
 from google.cloud import speech
 from google.cloud import storage
-import glob, os
+import glob, os, shutil
 import io
 import random, re
 
@@ -181,21 +181,11 @@ def transcribe_audio(request):
 
 ### This function takes in a particular patient, FP, and conversation decision
 @app.route('/download_media', methods=["POST"])
-def download_media(decision):
-    
-    ## Setting up dummy parameters
-    patientID = 1 # ID of patient
-    FPID = 1 # FP's ID for that particular patient
+def prepare_video(decision):
     prompts = re.split("\? |\. |\! |\, ", decision)
+    videos_dir = "tmp/media_from_bucket/fp_videos/"
+    destination_dir = "tmp/media_from_bucket/"
 
-    bucket_name = "familiar-person" 
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_APPLICATION_CREDENTIALS
-
-    storage_client = storage.Client()
-
-    bucket = storage_client.bucket(bucket_name)
-
-    # video_clips = []
     video_clip_filenames = []
 
     for prompt in prompts:
@@ -203,101 +193,21 @@ def download_media(decision):
         prompt = prompt.replace('?', '')
         prompt = prompt.replace('.', '')
 
-        try:
-            # Set path to download audio file from
-            source_blob_name_audio = 'Patients/'+str(patientID)+'/Familiar Person/'+str(FPID)+"/Audio/"+str(prompt)+".mp3"
-            blob_audio = bucket.blob(source_blob_name_audio)
+        if len(prompts) == 1:
+            shutil.copy(videos_dir+prompt+".mp4", destination_dir)
+            os.rename(destination_dir+prompt+".mp4", destination_dir+"new_video_clip.mp4")
+            return
 
-            # Set path to download video file from
-            source_blob_name_video = 'Patients/'+str(patientID)+'/Familiar Person/'+str(FPID)+"/Videos/"+str(prompt)+".mp4"
-            blob_video = bucket.blob(source_blob_name_video)
+        video_clip_filenames.append(videos_dir+prompt+".mp4")
 
-            # EDIT FILE PATH TO SAVE MEDIA FILES
-            destination_dir = "tmp/media_from_bucket/"
-            destination_file_name_audio = destination_dir+prompt+"_audio.mp3"
-            destination_file_name_video = destination_dir+prompt+"_video.mp4"
-
-            start_byte = 0 # Reading from beginning
-            end_byte = 99999999 # SETTING MAX SIZE FOR VIDEO & AUDIO
-
-            # Downloading video and audio clips from bucket
-            blob_audio.download_to_filename(destination_file_name_audio, start=0, end=end_byte)
-
-            print("\n[SUCCESS] Downloaded bytes {} to {} of audio object {} from bucket {} to local file {}.".format(
-                start_byte, end_byte, source_blob_name_audio, bucket_name, destination_file_name_audio
-            ))
-
-            blob_video.download_to_filename(destination_file_name_video, start=0, end=end_byte)
-
-            print("\n[SUCCESS] Downloaded bytes {} to {} of video object {} from bucket {} to local file {}.".format(
-                start_byte, end_byte, source_blob_name_video, bucket_name, destination_file_name_video
-            ))
-
-            video_clip = VideoFileClip(destination_file_name_video)
-
-            if len(prompts) == 1:
-                video_out_file = destination_dir+"new_video_clip.mp4"
-            else:
-                video_out_file = destination_dir+prompt+".mp4"
-
-            video_clip = VideoFileClip(destination_file_name_video)
-
-            video_with_new_audio = video_clip.set_audio(AudioFileClip(destination_file_name_audio)) 
-            video_with_new_audio.write_videofile(video_out_file, 
-                            codec='libx264', 
-                            audio_codec='aac', 
-                            temp_audiofile='temp-audio.m4a', 
-                            remove_temp=True)
-            
-            # video_clips.append(video_with_new_audio)
-            video_clip_filenames.append(video_out_file)
-
-        except Exception as e: 
-            # if str(e).startswith('404'):
-            #     print("[WARNING] Did not find file(s) in bucket! Perhaps this prompt is invalid.\n")
-            #     print(e)
-
-            # else:
-            #     print("[ERROR]: Could not download media files from bucket.\n")
-            #     print(e)
-
-            # Play default video 
-            print("[FAILURE] Could not download media files from bucket for prompt: " + prompt + " Retrieving default video & audio.\n")
-            
-            # Set path to download audio file from
-            # source_blob_name_audio = 'Patients/'+str(patientID)+'/Familiar Person/'+str(FPID)+"/Audio/Hi.mp3"
-            # blob_audio = bucket.blob(source_blob_name_audio)
-
-            # # Set path to download video file from
-            # source_blob_name_video = 'Patients/'+str(patientID)+'/Familiar Person/'+str(FPID)+"/Videos/Hi.mp4"
-            # blob_video = bucket.blob(source_blob_name_video)
-
-            # # Downloading video and audio clips from bucket
-            # blob_audio.download_to_filename(destination_file_name_audio, start=0, end=end_byte)
-
-            # print("\n[SUCCESS] Downloaded bytes {} to {} of DEFAULT audio object {} from bucket {} to local file {}.".format(
-            #     start_byte, end_byte, source_blob_name_audio, bucket_name, destination_file_name_audio
-            # ))
-
-            # blob_video.download_to_filename(destination_file_name_video, start=0, end=end_byte)
-
-            # print("\n[SUCCESS] Downloaded bytes {} to {} of DEFAULT video object {} from bucket {} to local file {}.".format(
-            #     start_byte, end_byte, source_blob_name_video, bucket_name, destination_file_name_video
-            # ))
-
-    if len(video_clip_filenames) > 1:
-        clips = [VideoFileClip(c) for c in video_clip_filenames]
+    clips = [VideoFileClip(c) for c in video_clip_filenames]
         
-        final_video = concatenate_videoclips(clips)
-        final_video.write_videofile("tmp/media_from_bucket/new_video_clip.mp4",
-                            codec='libx264', 
-                            audio_codec='aac', 
-                            temp_audiofile='temp-audio.m4a', 
-                            remove_temp=True)
-        
-    for prompt in prompts:
-        for file in glob.glob("tmp/media_from_bucket/" + prompt + "*"):
-            os.remove(file)
+    final_video = concatenate_videoclips(clips)
+    final_video.write_videofile("tmp/media_from_bucket/new_video_clip.mp4",
+                                codec='libx264',
+                                audio_codec='aac',
+                                temp_audiofile='temp-audio.m4a',
+                                remove_temp=True)
 
     return
 
@@ -382,13 +292,12 @@ def get_response(answers, prompts, matched_questions, p_input):
   response = response + prompt
 
   print(response)
-  download_media(response)
+  prepare_video(response)
   
   return response
 
 @app.route('/generate_decision', methods=["POST"])
 def generate_decision():
-    # download_media("How are you doing today?")
     transcript = transcribe_audio(request)
     return_value = {"Return":"Failure"}
     print("***TRANSCRIPT: " + transcript["Transcript"] + "\n")
