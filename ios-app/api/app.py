@@ -308,6 +308,11 @@ def get_response(p_input):
   prompt = random.choice(unused_prompts)
   unused_prompts.remove(prompt)
 
+  if "You are in {0}.".format(hospital) in response and prompt == "Do you know where you are?":
+    # get new prompt so that we don't ask them if they know where they are right after telling them where they are
+    prompt = random.choice(unused_prompts)
+    unused_prompts.remove(prompt)
+
   response = response + prompt
 
   print(response)
