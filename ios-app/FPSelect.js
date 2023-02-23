@@ -61,7 +61,10 @@ function FPSelect({ route, navigation }) {
                   text={data.FirstName + " " + data.LastName}
                   textColor="#fff"
                   rippleColor="white"
-                  onPress={() => navigation.navigate("Dialogue")}
+                  onPress={() => navigation.navigate("Dialogue", {
+                    patient_ID: associatedPatientID,
+                    FP_ID: data.FavouritePersonsID
+                  })}
                 ></GooglePlayButton>
               </View>
             );
