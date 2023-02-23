@@ -40,7 +40,7 @@ const App = () => {
           name="Create A Familiar Person Profile"
           component={CreateProfile}
         />
-        <Stack.Screen name="Dialogue" component={Dialogue} />
+        <Stack.Screen name="Dialogue" component={Dialogue} options={{title: "Video Call"}} />
         <Stack.Screen name="FP Select" component={FPSelect} />
       </Stack.Navigator>
     </NavigationContainer>

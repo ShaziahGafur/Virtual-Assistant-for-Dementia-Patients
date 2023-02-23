@@ -30,15 +30,15 @@ const recordingOptions = {
 };
 
 // pass these in later on
-// const patient_ID = 1;
-// const FP_ID = 1;
+const patient_ID = 1;
+const FP_ID = 1;
 
 let recording = new Audio.Recording();
 let stepOne;
 
 export default function Dialogue({ route, navigation }) {
 
-  const { patient_ID, FP_ID } = route.params;
+  // const { patient_ID, FP_ID } = route.params;
 
   //   const [recording, setRecording] = React.useState();
   const [transcript, setTranscript] = React.useState("");
