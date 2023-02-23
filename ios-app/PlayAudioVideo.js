@@ -71,6 +71,7 @@
 // });
 
 import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { Text, View, StyleSheet, Button, ImageBackground, Image } from 'react-native';
 import { Audio, Video, AVPlaybackStatus } from 'expo-av';
 import { setStatusBarBackgroundColor, setStatusAsync } from 'expo-status-bar';
@@ -82,6 +83,17 @@ import loading from './assets/loading.gif';
 export default function PlayAudioVideo({loadingScreen}) {
   const video = React.useRef(null);
   const [status, setStatus] = React.useState({});
+
+  // workaround for video not playing occasionally using loadAsync
+  // https://github.com/expo/expo/issues/17400 and https://github.com/expo/expo/issues/17395
+  useEffect(() => {
+    if (video.current) {
+      video.current.loadAsync(require("./api/tmp/media_from_bucket/new_video_clip.mp4"));
+      video.current.setPositionAsync(0);
+      video.current.playAsync();
+    }
+  }, []);
+
   if (loadingScreen == true){
     return (
       <View style={styles.loadingContainer}>
