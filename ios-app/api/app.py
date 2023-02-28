@@ -20,6 +20,11 @@ import io
 import random
 import re
 
+# Importing Voice Cloner. Note: Make this the last thing that we import
+import sys
+sys.path.insert(1, 'voice_clone/Real-Time-Voice-Cloning/')
+from demo_cli import  text_to_speech_voice_cloner
+
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
@@ -42,6 +47,29 @@ seasons = [('winter', (date(year_int,  1,  1),  date(year_int,  3, 20))),
            ('winter', (date(year_int, 12, 21),  date(year_int, 12, 31)))]
 season = next(season for season, (start, end) in seasons
                 if start <= datetime.today().date() <= end)
+
+greetings = ["Hi!",
+            "Hello!",
+            "Hey!",
+            "Hello {0}".format(p_name),
+            "Hi {0}, nice to see you again!".format(p_name)]
+
+prompts = ["How are you doing today?",
+            "Do you know where you are?",
+            # "Do you know what year it is?",
+            "Do you know what month it is?",
+            "Do you know what season it is?",
+            "How many children do you have?",
+            "Do you have a spouse What is their name?",
+            # "Where do you live?",
+            "What are your hobbies?",
+            "Are you feeling scared or afraid Tell me more about how you are feeling.",
+            "Do you like to read?",
+            "Do you like to sew?",
+            "Do you like to exercise?",
+            "Tell me about your friends in school.",
+            "Tell me about your children."
+            ]
 
 @app.route('/time')
 @cross_origin()
@@ -247,11 +275,6 @@ def download_media(decision):
     return
 
 def decision_setup():
-    greetings = ["Hi!",
-             "Hello!",
-             "Hey!",
-             "Hello {0}".format(p_name),
-             "Hi {0}, nice to see you again!".format(p_name)]
 
     answers = {
         # "who are you" : ["I am {0}.".format(fp_name)],
@@ -262,23 +285,6 @@ def decision_setup():
         # "what year is it" : ["It is the year {0}.".format(year)],
         # "what season is it" : ["It is {0} now.".format(season)],
     }
-
-    prompts = ["How are you doing today?",
-            "Do you know where you are?",
-            # "Do you know what year it is?",
-            "Do you know what month it is?",
-            "Do you know what season it is?",
-            "How many children do you have?",
-            "Do you have a spouse What is their name?",
-            # "Where do you live?",
-            "What are your hobbies?",
-            "Are you feeling scared or afraid Tell me more about how you are feeling.",
-            "Do you like to read?",
-            "Do you like to sew?",
-            "Do you like to exercise?",
-            "Tell me about your friends in school.",
-            "Tell me about your children."
-            ]
 
     matching_questions = {
         ('where', 'where am i'): "where am i",
@@ -487,6 +493,8 @@ def insert_a_favourite_person(request):
 
     # @Ruqhia you can either call your endpoint here (since they're all in Google Bucket)
     # or at the end of the function
+
+
 
     # remove the 4 created files
     os.remove(os.getcwd() + r"/tmp/" +"photo.jpg")
