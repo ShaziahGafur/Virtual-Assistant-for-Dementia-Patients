@@ -102,44 +102,75 @@ def download_FP_media_dialogue():
     client=storage.Client()
     bucket_name = "familiar-person" 
 
+    finished_videos_folder = "Patients/"+patient_ID+"/Familiar Person/"+FP_ID+"/FinishedVideos/"
     videos_folder="Patients/"+patient_ID+"/Familiar Person/"+FP_ID+"/Videos/"
     audio_folder="Patients/"+patient_ID+"/Familiar Person/"+FP_ID+"/Audio/"
 
     # Retrieve all blobs with a prefix matching the folder
     destination_dir = "tmp/media_from_bucket/fp_videos/"
     bucket=client.get_bucket(bucket_name)
+
+    # this won't throw an error if this doesn't exist
+    # however, it will return an empty list, which is why the below if statement must be <= 1
+    finished_video_blobs = list(bucket.list_blobs(prefix=finished_videos_folder))
+
     video_blobs=list(bucket.list_blobs(prefix=videos_folder))
     audio_blobs=list(bucket.list_blobs(prefix=audio_folder))
 
-    for blob in audio_blobs:
-        if(not blob.name.endswith("/")):
-            file_name = blob.name.split("/")[-1]
-            # only download mp3 files, not wav ones
-            if file_name[-4:] == ".mp3":
+    # the first in the list will always be the own folder, but should probably make it so that 
+    # it will check if the number of videos in the cloud bucket match the number of 
+    # prompts there are, or else it will never make videos of new prompts if the folder is not empty
+    if (len(finished_video_blobs) <= 1):
+        print("Videos have NOT been created! Creating now:")
+        for blob in audio_blobs:
+            if(not blob.name.endswith("/")):
+                file_name = blob.name.split("/")[-1]
+                # only download mp3 files, not wav ones
+                if file_name[-4:] == ".mp3":
+                    print(file_name)
+                    blob.download_to_filename(destination_dir+file_name)
+
+        for blob in video_blobs:
+            if(not blob.name.endswith("/")):
+                file_name = blob.name.split("/")[-1]
                 print(file_name)
-                blob.download_to_filename(destination_dir+file_name)
+                # download video from file bucket
+                file_path = destination_dir+file_name[:-4] # file path without .mp4
+                blob.download_to_filename(file_path + "_no_audio.mp4")
 
-    for blob in video_blobs:
-        if(not blob.name.endswith("/")):
-            file_name = blob.name.split("/")[-1]
-            print(file_name)
-            # download video from file bucket
-            file_path = destination_dir+file_name[:-4] # file path without .mp4
-            blob.download_to_filename(file_path + "_no_audio.mp4")
+                # create final video with audio
+                video_clip = VideoFileClip(file_path + "_no_audio.mp4")
 
-            # create final video with audio
-            video_clip = VideoFileClip(file_path + "_no_audio.mp4")
+                video_with_audio = video_clip.set_audio(AudioFileClip(file_path + ".mp3"))
+                video_with_audio.write_videofile(file_path + ".mp4",
+                                codec='libx264',
+                                audio_codec='aac',
+                                temp_audiofile='temp-audio.m4a',
+                                remove_temp=True)
 
-            video_with_audio = video_clip.set_audio(AudioFileClip(file_path + ".mp3"))
-            video_with_audio.write_videofile(file_path + ".mp4",
-                            codec='libx264',
-                            audio_codec='aac',
-                            temp_audiofile='temp-audio.m4a',
-                            remove_temp=True)
+                # remove clips that are no longer necessary
+                os.remove(file_path + "_no_audio.mp4")
+                os.remove(file_path + ".mp3")
 
-            # remove clips that are no longer necessary
-            os.remove(file_path + "_no_audio.mp4")
-            os.remove(file_path + ".mp3")
+        print("Videos and Audio combined, now uploading to Google Cloud FinishedVideos folder")
+
+        for file in os.listdir(destination_dir):
+            if file.endswith(".mp4"):
+                complete_file_name = os.path.join(destination_dir, file)
+                blob = bucket.blob(finished_videos_folder + file)
+                blob.upload_from_filename(complete_file_name)
+
+
+    else:
+        print("Videos are already created! Pulling from the FinishedVideos folder")
+        for blob in finished_video_blobs:
+            if(not blob.name.endswith("/")):
+                file_name = blob.name.split("/")[-1]
+                # download video from file bucket
+                file_path = destination_dir
+                blob.download_to_filename(file_path + file_name)
+
+    print("Videos all downloaded! Starting video call set-up.")
 
     # set up initial greeting
     shutil.copy(destination_dir+"How are you doing today.mp4", "tmp/media_from_bucket/")
