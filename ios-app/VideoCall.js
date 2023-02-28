@@ -70,49 +70,14 @@ export default function Dialogue({ route, navigation }) {
     if (loadingScreen == true){
       // you need this or else it won't populate the prompts on the backend
       downloadFPMedia();
-    console.log("loading screen");
-    // setLoadingScreen(false);
-    }
-    else{
-    console.log(recordingStatus);
-
-    if (videoFinished != undefined && videoFinished == true){
+      }
+      else{
+        console.log(recordingStatus);
+        if (videoFinished != undefined && videoFinished == true){
             startAsyncRecording();
+        }
+      }
     }
-    //   if (videoFinished != undefined && videoFinished == true){
-    //     console.log("inside video finished! start the next recording");
-    //   startAsyncRecording();
-
-    //     // setTimeout(function() {
-
-    //     // }, 2000);
-    //   }
-    //   else{
-    //     console.log("video finished is undefined! wait 3s and then start recording");
-
-    // setTimeout(function() {
-    //   startAsyncRecording();
-    //   /*
-    //   const interval = setInterval(() => {
-    //     if (stepOne == false || stepOne == undefined) {
-    //       console.log("in the step of stopping recording + get transcript");
-    //       stopAsyncRecording();
-    //       asyncGetTranscription();
-    //       stepOne = true;
-    //     } else {
-    //       console.log("in the step of rerecording");
-    //       startAsyncRecording();
-    //       stepOne = false;
-    //     }
-    //   }, THIRTY_S);
-
-    //   return () => {
-    //     clearInterval(interval);
-    //   };*/
-    // }, 3000);
-  // }
-  }
-}
   }, [loadingScreen, isFocused, videoFinished]);
 
   startAsyncRecording = async () => {
@@ -216,6 +181,9 @@ export default function Dialogue({ route, navigation }) {
   async function endCall(){
     console.log("call ended!");
     console.log(recordingStatus);
+    // if (recordingStatus != undefined){
+    //   stopRecording();
+    // }
     // if (recordingStatus.isRecording == true){ // is currently recording, stop it immediately
     //   await stopRecording();
     // }
