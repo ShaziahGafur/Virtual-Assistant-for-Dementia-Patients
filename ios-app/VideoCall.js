@@ -62,8 +62,6 @@ export default function Dialogue({ route, navigation }) {
   const [loadingScreen, setLoadingScreen] = React.useState(true);
   const [isFetching, setIsFetching] = React.useState(false);
 
-  const THIRTY_S = 8 * 1000; // this was 2 before
-
   useEffect(() => {
    
     if (isFocused == true){
@@ -102,8 +100,7 @@ export default function Dialogue({ route, navigation }) {
     };
     console.log(body);
     const response = await axios.get(
-      // REACT_APP_BACKEND_API + "/download_fp_media",
-      'http://100.67.11.108:5000' + "/download_fp_media",
+      REACT_APP_BACKEND_API + "/download_fp_media",
       {
         params: body,
         headers: header,
@@ -222,7 +219,7 @@ export default function Dialogue({ route, navigation }) {
         headers: { "Content-Type": "multipart/form-data" },
       };
       const response = await axios.post(
-        'http://100.67.11.108:5000' + "/generate_decision",
+        REACT_APP_BACKEND_API + "/generate_decision",
         formData,
         {
           headers: header,
@@ -265,8 +262,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     right: 0,
     backgroundColor: "black",
-    // justifyContent: 'center',
-    // alignItems: "center",
   },
   button: {
     backgroundColor: "#48C9B0",
