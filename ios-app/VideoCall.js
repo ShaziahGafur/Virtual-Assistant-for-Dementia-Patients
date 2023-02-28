@@ -39,7 +39,7 @@ const patient_ID = 1;
 const FP_ID = 1;
 
 const RECORDING_STOP_SECONDS = 5 * 1000 / 500; // 5 seconds
-const RECORDING_STOP_DB = -20; // if its less than -20, keep going
+const RECORDING_STOP_DB = -30; // if its less than -20, keep going
 let counter = 0;
 
 let recording = new Audio.Recording();
@@ -75,38 +75,42 @@ export default function Dialogue({ route, navigation }) {
     }
     else{
     console.log(recordingStatus);
-      if (videoFinished != undefined && videoFinished == true){
-        console.log("inside video finished! start the next recording");
-      startAsyncRecording();
 
-        // setTimeout(function() {
+    if (videoFinished != undefined && videoFinished == true){
+            startAsyncRecording();
+    }
+    //   if (videoFinished != undefined && videoFinished == true){
+    //     console.log("inside video finished! start the next recording");
+    //   startAsyncRecording();
 
-        // }, 2000);
-      }
-      else{
-        console.log("video finished is undefined! wait 3s and then start recording");
+    //     // setTimeout(function() {
 
-    setTimeout(function() {
-      startAsyncRecording();
-      /*
-      const interval = setInterval(() => {
-        if (stepOne == false || stepOne == undefined) {
-          console.log("in the step of stopping recording + get transcript");
-          stopAsyncRecording();
-          asyncGetTranscription();
-          stepOne = true;
-        } else {
-          console.log("in the step of rerecording");
-          startAsyncRecording();
-          stepOne = false;
-        }
-      }, THIRTY_S);
+    //     // }, 2000);
+    //   }
+    //   else{
+    //     console.log("video finished is undefined! wait 3s and then start recording");
 
-      return () => {
-        clearInterval(interval);
-      };*/
-    }, 3000);
-  }
+    // setTimeout(function() {
+    //   startAsyncRecording();
+    //   /*
+    //   const interval = setInterval(() => {
+    //     if (stepOne == false || stepOne == undefined) {
+    //       console.log("in the step of stopping recording + get transcript");
+    //       stopAsyncRecording();
+    //       asyncGetTranscription();
+    //       stepOne = true;
+    //     } else {
+    //       console.log("in the step of rerecording");
+    //       startAsyncRecording();
+    //       stepOne = false;
+    //     }
+    //   }, THIRTY_S);
+
+    //   return () => {
+    //     clearInterval(interval);
+    //   };*/
+    // }, 3000);
+  // }
   }
 }
   }, [loadingScreen, isFocused, videoFinished]);
@@ -159,7 +163,11 @@ export default function Dialogue({ route, navigation }) {
       if (status.metering < RECORDING_STOP_DB){
         counter += 1;
       }
+      else{
+        counter = 0;
+      }
       if (counter > RECORDING_STOP_SECONDS){
+        counter = 0;
         stopAsyncRecording();
         asyncGetTranscription();
       }
@@ -169,7 +177,7 @@ export default function Dialogue({ route, navigation }) {
   async function startRecording() {
     console.log("recording status:");
     console.log(recordingStatus);
-    if (recordingStatus != undefined && (recordingStatus.isRecording == false && recordingStatus.canRecord == true)){
+    if (recordingStatus == undefined || (recordingStatus.isRecording == false && recordingStatus.canRecord == true)){
     recording = new Audio.Recording();
     try {
       console.log("Requesting permissions..");
