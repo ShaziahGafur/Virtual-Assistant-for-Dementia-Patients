@@ -8,6 +8,7 @@ import CreateNewPatientProfile from "./CreatePatientProfile";
 import SpeechToText from "./SpeechToText";
 import RecordAudio from "./RecordAudio";
 import PatientSelect from "./PatientSelect";
+import VideoCall from "./VideoCall";
 import FPSelect from "./FPSelect";
 import Dialogue from "./Dialogue";
 import Apis from "./Apis";
@@ -41,6 +42,7 @@ const App = () => {
           component={CreateProfile}
         />
         <Stack.Screen name="Dialogue" component={Dialogue} options={{title: "Video Call"}} />
+        <Stack.Screen name="Video Call" component={VideoCall} options={{title: "Video Call"}} />
         <Stack.Screen name="FP Select" component={FPSelect} />
       </Stack.Navigator>
     </NavigationContainer>
@@ -65,12 +67,23 @@ function HomeScreen({ navigation }) {
         rippleColor="white"
       /> */}
       <GooglePlayButton
-        onPress={() => navigation.navigate("Dialogue")}
+        onPress={() => navigation.navigate("Video Call")}
         backgroundColor="#06038D"
-        text="Dialogue"
+        style={styles.buttonStyling}
+
+        text="Start Video Call (must test on iPad)"
         textColor="#fff"
         rippleColor="white"
       />
+      <GooglePlayButton
+      onPress={() => navigation.navigate("Video Call")}
+      backgroundColor="#06038D"
+      style={styles.buttonStyling}
+
+      text="Dialogue"
+      textColor="#fff"
+      rippleColor="white"
+    />
       <GooglePlayButton
         onPress={() => navigation.navigate("Load An Existing Profile")}
         style={styles.buttonStyling}
@@ -143,7 +156,7 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
   },
   hospitalPng: {
-    height: 750,
+    height: 650,
     width: 600,
     resizeMode: "contain",
   },

@@ -80,7 +80,7 @@ import axios from 'axios';
 import loading from './assets/loading.gif';
 
 
-export default function PlayAudioVideo({loadingScreen}) {
+export default function PlayAudioVideo({loadingScreen, videoFinished, setVideoFinished}) {
   const video = React.useRef(null);
   const [status, setStatus] = React.useState({});
 
@@ -93,6 +93,15 @@ export default function PlayAudioVideo({loadingScreen}) {
       video.current.playAsync();
     }
   }, []);
+
+  _onPlaybackStatusUpdate = (playbackStatus) => {
+    // The player has just finished playing and will stop.
+    if (playbackStatus.didJustFinish){
+      console.log("video finished! ");
+      setVideoFinished(true);
+      console.log("set video finished");
+    }
+  };
 
   if (loadingScreen == true){
     return (
@@ -110,8 +119,8 @@ export default function PlayAudioVideo({loadingScreen}) {
         style={styles.video}
         source={require("./api/tmp/media_from_bucket/new_video_clip.mp4")}
         resizeMode="contain"
-        onPlaybackStatusUpdate={status => setStatus(() => status)}
-        onLoad={() => {video.current.setPositionAsync(0); video.current.playAsync()}}
+        onPlaybackStatusUpdate={status => {setStatus(() => status); this._onPlaybackStatusUpdate(status)}}
+        onLoad={() => {video.current.setPositionAsync(0); video.current.playAsync(); setVideoFinished(false); console.log(videoFinished)}}
         shouldPlay="True"
       />
       </ImageBackground>
