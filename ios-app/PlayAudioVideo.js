@@ -82,15 +82,28 @@ import loading from './assets/loading.gif';
 
 export default function PlayAudioVideo({loadingScreen, videoFinished, setVideoFinished}) {
   const video = React.useRef(null);
+  const bg_video = React.useRef(null);
   const [status, setStatus] = React.useState({});
 
   // workaround for video not playing occasionally using loadAsync
   // https://github.com/expo/expo/issues/17400 and https://github.com/expo/expo/issues/17395
   useEffect(() => {
-    if (video.current) {
+    if (!videoFinished && video.current) {
+      // if (bg_video.current) {
+      //   bg_video.current.setIsMutedAsync(true);
+      // }
+      // console.log("in prompt video useEffect")
       video.current.loadAsync(require("./api/tmp/media_from_bucket/new_video_clip.mp4"));
       video.current.setPositionAsync(0);
       video.current.playAsync();
+    }
+    else if (videoFinished && bg_video.current) {
+      // console.log("in bg_video useEffect")
+      bg_video.current.loadAsync(require("./assets/bg_video.mp4"));
+      bg_video.current.setIsMutedAsync(true); // should change to false later
+      bg_video.current.setIsLoopingAsync(true);
+      bg_video.current.setPositionAsync(0);
+      bg_video.current.playAsync();
     }
   }, []);
 
@@ -123,6 +136,16 @@ export default function PlayAudioVideo({loadingScreen, videoFinished, setVideoFi
         onLoad={() => {video.current.setPositionAsync(0); video.current.playAsync(); setVideoFinished(false); console.log(videoFinished)}}
         shouldPlay="True"
       />
+      <Video
+        ref={bg_video}
+        style={[styles.video, videoFinished ? styles.notHidden : styles.hidden]}
+        source={require("./assets/bg_video.mp4")}
+        resizeMode="contain"
+        onLoad={() => {bg_video.current.setPositionAsync(0); bg_video.current.setIsMutedAsync(true); bg_video.current.setIsLoopingAsync(true); bg_video.current.playAsync()}}
+        // set isMuted onLoad otherwise it randomly unmutes
+        isLooping="True"
+        shouldPlay="True"
+      />
       </ImageBackground>
     </View>
   );
@@ -136,11 +159,11 @@ const styles = StyleSheet.create({
     // padding: 10,
   },
   video: {
-    flex: 1,
-    // position:"absolute",
-    justifyContent: 'center',
-    // backgroundColor: '#ecf0f1',
-    padding: 10, 
+    position: "absolute",
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
   },
   backgroundPhoto: {
     flex: 1,
@@ -156,5 +179,12 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     resizeMode: 'contain' 
+  },
+  hidden: {
+    display: "none",
+  },
+  notHidden: {
+    zIndex: 2,
+    display: "initial",
   }
 });
