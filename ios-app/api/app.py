@@ -30,10 +30,6 @@ from voice_clone.Real_Time_Voice_Cloning.utils.argutils import print_args
 from voice_clone.Real_Time_Voice_Cloning.utils.default_models import ensure_default_models
 from voice_clone.Real_Time_Voice_Cloning.vocoder import inference as vocoder
 
-# import sys
-# sys.path.insert(1, 'voice_clone/Real-Time-Voice-Cloning/')
-# sys.path.insert(1, '../../')
-
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
