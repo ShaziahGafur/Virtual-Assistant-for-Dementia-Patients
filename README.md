@@ -88,5 +88,5 @@ In a terminal, run ngrok http 5000. This is because 5000 is the port that the ba
 ### Adding missing files for Voice Cloner
 
 1) Go to our drive, into the folder 'Voice Clone missing files'
-2) Copy the download the folder 'saved_models' and its contents
+2) Download the folder 'saved_models' and its contents
 3) Place the folder 'saved_models' at this location in our project: 'ios-app\api\voice_clone\Real_Time_Voice_Cloning\saved_models'
