@@ -11,7 +11,7 @@ hyperparameter. Some cleaners are English-specific. You"ll typically want to use
 """
 import re
 from unidecode import unidecode
-from synthesizer.utils.numbers import normalize_numbers
+from voice_clone.Real_Time_Voice_Cloning.synthesizer.utils.numbers import normalize_numbers
 
 
 # Regular expression matching whitespace:

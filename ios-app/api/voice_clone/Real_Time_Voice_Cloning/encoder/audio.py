@@ -1,5 +1,5 @@
 from scipy.ndimage.morphology import binary_dilation
-from encoder.params_data import *
+from voice_clone.Real_Time_Voice_Cloning.encoder.params_data import *
 from pathlib import Path
 from typing import Optional, Union
 from warnings import warn

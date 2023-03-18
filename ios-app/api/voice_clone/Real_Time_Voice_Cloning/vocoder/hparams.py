@@ -1,4 +1,4 @@
-from synthesizer.hparams import hparams as _syn_hp
+from voice_clone.Real_Time_Voice_Cloning.synthesizer.hparams import hparams as _syn_hp
 
 
 # Audio settings------------------------------------------------------------------------

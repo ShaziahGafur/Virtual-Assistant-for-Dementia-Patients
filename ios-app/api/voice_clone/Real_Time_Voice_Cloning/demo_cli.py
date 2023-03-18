@@ -7,25 +7,35 @@ import numpy as np
 import soundfile as sf
 import torch
 
-from encoder import inference as encoder
-from encoder.params_model import model_embedding_size as speaker_embedding_size
-from synthesizer.inference import Synthesizer
-from utils.argutils import print_args
-from utils.default_models import ensure_default_models
-from vocoder import inference as vocoder
+from voice_clone.Real_Time_Voice_Cloning.encoder import inference as encoder
+from voice_clone.Real_Time_Voice_Cloning.encoder.params_model import model_embedding_size as speaker_embedding_size
+from voice_clone.Real_Time_Voice_Cloning.synthesizer.inference import Synthesizer
+from voice_clone.Real_Time_Voice_Cloning.utils.argutils import print_args
+from voice_clone.Real_Time_Voice_Cloning.utils.default_models import ensure_default_models
+from voice_clone.Real_Time_Voice_Cloning.vocoder import inference as vocoder
 
+from pydub import AudioSegment
 
 def text_to_speech_voice_cloner(dialogues):
 
     ## Load the models one by one.
-    ensure_default_models(Path("saved_models"))
-    encoder.load_model(Path("saved_models/default/encoder.pt"))
-    synthesizer = Synthesizer(Path("saved_models/default/synthesizer.pt"))
-    vocoder.load_model(Path("saved_models/default/vocoder.pt"))
+    ensure_default_models(Path("voice_clone/Real_Time_Voice_Cloning/saved_models"))
+    encoder.load_model(Path("voice_clone/Real_Time_Voice_Cloning/saved_models/default/encoder.pt"))
+    synthesizer = Synthesizer(Path("voice_clone/Real_Time_Voice_Cloning/saved_models/default/synthesizer.pt"))
+    vocoder.load_model(Path("voice_clone/Real_Time_Voice_Cloning/saved_models/default/vocoder.pt"))
 
-    filename = "audio_clips\FP_audio_clip.mp3"
+    filename = "voice_clone/Real_Time_Voice_Cloning/audio_clips/FP_audio_clip.wav"
+
+    finish = False
 
     for phrase in dialogues:
+        if finish:
+            break
+        if len(dialogues) == 1:
+            phrase = dialogues[0]
+
+            finish = True
+
         try:
             # Get the reference audio filepath
             in_fpath = filename
@@ -90,7 +100,7 @@ def text_to_speech_voice_cloner(dialogues):
             #     raise
 
             # Save it on the disk
-            filename = ("audio_clips\output\\"+phrase+".wav").replace("?", "")
+            filename = ("voice_clone\\Real_Time_Voice_Cloning\\audio_clips\output\\"+phrase+".wav").replace("?", "")
             print(generated_wav.dtype)
             sf.write(filename, generated_wav.astype(np.float32), synthesizer.sample_rate)      
             print("\nSaved output as %s\n\n" % filename)
@@ -100,20 +110,25 @@ def text_to_speech_voice_cloner(dialogues):
             print("Caught exception: %s" % repr(e))
             print("Restarting\n")
 
+    # convert .wav files into mp3
+    for phrase in dialogues:
+        phrase = phrase.replace('?','')
+        AudioSegment.from_wav("voice_clone\\Real_Time_Voice_Cloning\\audio_clips\output\\"+phrase+".wav").export("voice_clone\\Real_Time_Voice_Cloning\\audio_clips\output\\mp3\\"+phrase+".mp3", format="mp3")
+
+    
 
 dialogues = [
-"How are you doing today",
-"Do you know where you are",
-"Do you know what month it is",
-"Do you know what season it is",
-"How many children do you have",
-"Do you have a spouse What is their name",
-"What are your hobbies",
-"Are you feeling scared or afraid?", 
-"Tell me more about how you are feeling",
-"Do you like to read",
-"Do you like to sew",
-"Do you like to exercise",
+"How are you doing today?",
+"Do you know where you are?",
+"Do you know what month it is?",
+"Do you know what season it is?",
+"How many children do you have?",
+"Do you have a spouse? What is their name?",
+"What are your hobbies?",
+"Are you feeling scared or afraid? Tell me more about how you are feeling",
+"Do you like to read?",
+"Do you like to sew?",
+"Do you like to exercise?",
 "Tell me about your friends in school",
 "Tell me about your children",
 "You are in hospital because you are sick",
