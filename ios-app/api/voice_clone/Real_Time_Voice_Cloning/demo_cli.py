@@ -33,9 +33,9 @@ def text_to_speech_voice_cloner(dialogues):
             break
         if len(dialogues) == 1:
             phrase = dialogues[0]
-
             finish = True
-
+        phrase = phrase.replace(".", "")
+        
         try:
             # Get the reference audio filepath
             in_fpath = filename
