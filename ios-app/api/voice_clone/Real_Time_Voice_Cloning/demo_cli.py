@@ -60,6 +60,8 @@ def text_to_speech_voice_cloner(dialogues):
 
             ## Generating the spectrogram
             text = phrase
+            if text == "ninth":
+                text = "nineth"
 
             # The synthesizer works in batch, so you need to put your data in a list or numpy array
             texts = [text]
@@ -101,10 +103,10 @@ def text_to_speech_voice_cloner(dialogues):
     # convert .wav files into mp3
     for phrase in dialogues:
         phrase = phrase.replace('?','')
+        phrase = phrase.replace('.','')
         AudioSegment.from_wav("voice_clone\\Real_Time_Voice_Cloning\\audio_clips\output\\"+phrase+".wav").export("voice_clone\\Real_Time_Voice_Cloning\\audio_clips\output\\mp3\\"+phrase+".mp3", format="mp3")
 
     
-
 dialogues = [
 "How are you doing today?",
 "Do you know where you are?",
@@ -121,6 +123,13 @@ dialogues = [
 "Tell me about your children",
 "You are in hospital because you are sick",
 "You are in North York General Hospital",
+"Did you know that an ostrich's eye is bigger than its brain?",
+"Did you know that the heart of a shrimp is located in its head?",
+"Did you know that potato chips were invented by mistake?",
+"It is fall now",
+"It is winter now",
+"It is spring now",
+"It is summer now",
 "Today is",
 "Monday",
 "Tuesday",
@@ -173,14 +182,8 @@ dialogues = [
 "thirtieth",
 "thirty-first",
 "twenty twenty-three",
-"It is the year twenty twenty-three",
-"It is fall now",
-"It is winter now",
-"It is spring now",
-"It is summer now",
-"Did you know that an ostrich's eye is bigger than its brain?",
-"Did you know that the heart of a shrimp is located in its head?",
-"Did you know that potato chips were invented by mistake?"
+"It is the year twenty twenty-three"
 ]
 
-text_to_speech_voice_cloner(dialogues)
+for i, v in enumerate(dialogues):
+    text_to_speech_voice_cloner(dialogues[i:i+1])
