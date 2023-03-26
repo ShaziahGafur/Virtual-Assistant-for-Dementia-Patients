@@ -100,7 +100,7 @@ export default function Dialogue({ route, navigation }) {
     };
     console.log(body);
     const response = await axios.get(
-      "http://100.67.0.68:5000" + "/download_fp_media",
+      REACT_APP_BACKEND_API + "/download_fp_media",
       {
         params: body,
         headers: header,
@@ -219,7 +219,7 @@ export default function Dialogue({ route, navigation }) {
         headers: { "Content-Type": "multipart/form-data" },
       };
       const response = await axios.post(
-        "http://100.67.0.68:5000" + "/generate_decision",
+        REACT_APP_BACKEND_API + "/generate_decision",
         formData,
         {
           headers: header,

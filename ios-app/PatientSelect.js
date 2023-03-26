@@ -12,7 +12,7 @@ const fetchData = async () => {
     headers: { "Content-Type": "application/json" },
   };
   const response = await axios.get(
-    'http://100.67.0.68:5000' + "/db/patients",
+    REACT_APP_BACKEND_API + "/db/patients",
     {
       headers: header,
       method: "GET",
