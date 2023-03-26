@@ -1,6 +1,6 @@
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View, Alert, Image } from "react-native";
-import { Button, GooglePlayButton } from "@freakycoder/react-native-button";
+import { StyleSheet, Text, View, Alert, Image, Pressable } from "react-native";
+import { GooglePlayButton } from "@freakycoder/react-native-button";
 import { NavigationContainer, TabActions } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import CreateProfile from "./CreateProfile";
@@ -66,41 +66,31 @@ function HomeScreen({ navigation }) {
         textColor="#fff"
         rippleColor="white"
       /> */}
-      <GooglePlayButton
+      {/* <GooglePlayButton
         onPress={() => navigation.navigate("Video Call")}
         backgroundColor="#06038D"
         style={styles.buttonStyling}
-
-        text="Start Video Call (must test on iPad)"
+        text="Start Video Call"
         textColor="#fff"
         rippleColor="white"
-      />
-      <GooglePlayButton
-      onPress={() => navigation.navigate("Video Call")}
+      /> */}
+      {/* <GooglePlayButton
+      onPress={() => navigation.navigate("Dialogue")}
       backgroundColor="#06038D"
       style={styles.buttonStyling}
 
       text="Dialogue"
       textColor="#fff"
       rippleColor="white"
-    />
-      <GooglePlayButton
-        onPress={() => navigation.navigate("Load An Existing Profile")}
-        style={styles.buttonStyling}
-        backgroundColor="#06038D"
-        text="Load An Existing Profile"
-        textColor="#fff"
-        rippleColor="white"
-      />
-      <GooglePlayButton
-        onPress={() => navigation.navigate("Create A New Profile")}
-        outline
-        style={styles.buttonStyling}
-        backgroundColor="#06038D"
-        text="Create A New Profile"
-        textColor="#000"
-        rippleColor="blue"
-      />
+    /> */}
+      <Pressable style={styles.button}
+        onPress={() => navigation.navigate("Load An Existing Profile")}>
+          <Text style={styles.text}>Load An Existing Profile</Text>
+        </Pressable>
+      <Pressable style={styles.button2}
+        onPress={() => navigation.navigate("Create A New Profile")}>
+          <Text style={styles.text}>Create A New Profile</Text>
+        </Pressable>
       <StatusBar style="auto" />
     </View>
   );
@@ -166,6 +156,34 @@ const styles = StyleSheet.create({
   buttonStyling2: {
     height: 100,
     margin: 10,
+  },
+  button2: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 10,
+    elevation: 3,
+    width:800,
+    backgroundColor: 'black',
+  },
+  button: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 10,
+    elevation: 3,
+    width:800,
+    margin: 20,
+    backgroundColor: '#06038D',
+  },
+  text: {
+    fontSize: 22,
+    lineHeight: 21,
+    fontWeight: 'bold',
+    letterSpacing: 0.25,
+    color: 'white',
   },
 });
 

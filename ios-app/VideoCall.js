@@ -38,8 +38,8 @@ const recordingOptions = {
 const patient_ID = 1;
 const FP_ID = 1;
 
-const RECORDING_STOP_SECONDS = 5 * 1000 / 500; // 5 seconds
-const RECORDING_STOP_DB = -30; // if its less than -20, keep going
+const RECORDING_STOP_SECONDS = 2 * 1000 / 500; // 5 seconds
+const RECORDING_STOP_DB = -27; // if its less than -20, keep going
 let counter = 0;
 
 let recording = new Audio.Recording();
@@ -100,7 +100,7 @@ export default function Dialogue({ route, navigation }) {
     };
     console.log(body);
     const response = await axios.get(
-      REACT_APP_BACKEND_API + "/download_fp_media",
+      "http://100.67.0.68:5000" + "/download_fp_media",
       {
         params: body,
         headers: header,
@@ -219,7 +219,7 @@ export default function Dialogue({ route, navigation }) {
         headers: { "Content-Type": "multipart/form-data" },
       };
       const response = await axios.post(
-        REACT_APP_BACKEND_API + "/generate_decision",
+        "http://100.67.0.68:5000" + "/generate_decision",
         formData,
         {
           headers: header,
