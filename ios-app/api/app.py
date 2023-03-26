@@ -562,85 +562,85 @@ def insert_a_favourite_person(request):
     FP_id = cur.lastrowid
 
     dialogues = [
-    "Hello!",
-    "Hey!",
-    "Hello {0}".format(p_name),
-    "Hi {0}, nice to see you again!".format(p_name),
-    "How are you doing today?",
-    "Do you know where you are?",
-    "Do you know what month it is?",
-    "Do you know what season it is?",
-    "How many children do you have?",
-    "Do you have a spouse? What is their name?",
-    "What are your hobbies?",
-    "Are you feeling scared or afraid? Tell me more about how you are feeling",
-    "Do you like to read?",
-    "Do you like to sew?",
-    "Do you like to exercise?",
-    "Tell me about your friends in school",
-    "Tell me about your children",
-    "You are in hospital because you are sick",
-    "You are in North York General Hospital",
-    "Did you know that an ostrich's eye is bigger than its brain?",
-    "Did you know that the heart of a shrimp is located in its head?",
-    "Did you know that potato chips were invented by mistake?",
-    "It is fall now",
-    "It is winter now",
-    "It is spring now",
-    "It is summer now",
-    "Today is",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday",
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-    "first",
-    "second",
-    "third",
-    "fourth",
-    "fifth",
-    "sixth",
-    "seventh",
-    "eighth",
-    "ninth",
-    "tenth",
-    "eleventh",
-    "twelfth",
-    "thirteenth",
-    "fourteenth",
-    "fifteenth",
-    "sixteenth",
-    "seventeenth",
-    "eighteenth",
-    "nineteenth",
-    "twentieth",
-    "twenty-first",
-    "twenty-second",
-    "twenty-third",
-    "twenty-fourth",
-    "twenty-fifth",
-    "twenty-sixth",
-    "twenty-seventh",
-    "twenty-eighth",
-    "twenty-ninth",
-    "thirtieth",
-    "thirty-first",
-    "twenty twenty-three",
-    "It is the year twenty twenty-three"
+        "Hello!",
+        "Hey!",
+        "Hello {0}".format(p_name),
+        "Hi {0}, nice to see you again!".format(p_name),
+        "How are you doing today?",
+        "Do you know where you are?",
+        "Do you know what month it is?",
+        "Do you know what season it is?",
+        "How many children do you have?",
+        "Do you have a spouse? What is their name?",
+        "What are your hobbies?",
+        "Are you feeling scared or afraid? Tell me more about how you are feeling",
+        "Do you like to read?",
+        "Do you like to sew?",
+        "Do you like to exercise?",
+        "Tell me about your friends in school",
+        "Tell me about your children",
+        "You are in hospital because you are sick",
+        "You are in North York General Hospital",
+        "Did you know that an ostrich's eye is bigger than its brain?",
+        "Did you know that the heart of a shrimp is located in its head?",
+        "Did you know that potato chips were invented by mistake?",
+        "It is fall now",
+        "It is winter now",
+        "It is spring now",
+        "It is summer now",
+        "Today is",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth",
+        "sixth",
+        "seventh",
+        "eighth",
+        "ninth",
+        "tenth",
+        "eleventh",
+        "twelfth",
+        "thirteenth",
+        "fourteenth",
+        "fifteenth",
+        "sixteenth",
+        "seventeenth",
+        "eighteenth",
+        "nineteenth",
+        "twentieth",
+        "twenty-first",
+        "twenty-second",
+        "twenty-third",
+        "twenty-fourth",
+        "twenty-fifth",
+        "twenty-sixth",
+        "twenty-seventh",
+        "twenty-eighth",
+        "twenty-ninth",
+        "thirtieth",
+        "thirty-first",
+        "twenty twenty-three",
+        "It is the year twenty twenty-three"
     ]
 
     for i, v in enumerate(dialogues):
@@ -651,10 +651,10 @@ def insert_a_favourite_person(request):
     # mp3path = outputpath + r"mp3/"
     wavfiles = [f for f in listdir(outputpath) if isfile(join(outputpath, f))]
 
-    # Upload file to Google Bucket (the "familiar-person-form-data" one)    
+    # Upload file to Google Bucket (the "familiar-person" one)    
     storage_client = storage.Client()
-    bucket = storage_client.bucket(FP_FORM_BUCKET_NAME)
-    audio_folder = "Patients/"+patient_id+"/Familiar Person/"+FP_id+"/Audio/"
+    bucket = storage_client.bucket(BUCKET_NAME)
+    audio_folder = "Patients/"+str(patient_id)+"/Familiar Person/"+str(FP_id)+"/Audio/"
 
     # Upload each .mp3 file
     for clip in wavfiles:
@@ -662,10 +662,12 @@ def insert_a_favourite_person(request):
         blob.upload_from_filename(outputpath + clip)
 
     # Delete all clips generated by the cloner + the copy of the original FP clip
-    for clip in outputpath:
+    for clip in wavfiles:
+        # print("outputpath:", outputpath)
+        # print("clip:", clip)
         # os.remove(mp3path + clip)
         os.remove(outputpath + clip)
-    os.remove(outputpath[:-7] + "FP_audio_clip.wav") 
+    os.remove(outputpath[:-7] + "FP_audio_clip.wav")
 
 
     return {"result":"Success"}
