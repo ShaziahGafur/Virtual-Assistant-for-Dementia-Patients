@@ -104,6 +104,7 @@ def text_to_speech_voice_cloner(dialogues):
 
         except Exception as e:
             print("Caught exception: %s" % repr(e))
-            print("Restarting\n")
+            print("Continuing\n")
+            dialogues.append(phrase)
 
     
