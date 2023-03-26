@@ -4,23 +4,23 @@ import { GooglePlayButton } from "@freakycoder/react-native-button";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import axios from "axios";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Pressable } from "react-native";
 console.log(REACT_APP_BACKEND_API);
 
 const fetchData = async (associatedPatientID) => {
-  console.log(associatedPatientID);
+  // console.log(associatedPatientID);
   const header = {
     headers: { "Content-Type": "application/json" },
   };
   const response = await axios.get(
-    REACT_APP_BACKEND_API + "/db/favouritepersons",
+    'http://100.67.0.68:5000' + "/db/favouritepersons",
     {
       headers: header,
       method: "GET",
       params: { patientID: associatedPatientID },
     }
   );
-  console.log(response.data);
+  // console.log(response.data);
   return response.data;
 };
 
@@ -55,17 +55,25 @@ function FPSelect({ route, navigation }) {
           FPs.map((data, id) => {
             return (
               <View style={styles.container} key={id}>
-                <GooglePlayButton
+                <Pressable style={styles.button}
+                onPress={() => navigation.navigate("Video Call", {
+                  patient_ID: associatedPatientID,
+                  FP_ID: data.FavouritePersonsID
+                })}>
+                <Text style={styles.text}
+                >{data.FirstName + " " + data.LastName}</Text>
+                </Pressable>
+                {/* <GooglePlayButton
                   style={styles.buttonStyling}
                   backgroundColor="#06038D"
                   text={data.FirstName + " " + data.LastName}
                   textColor="#fff"
                   rippleColor="white"
-                  onPress={() => navigation.navigate("Dialogue", {
+                  onPress={() => navigation.navigate("Video Call", {
                     patient_ID: associatedPatientID,
                     FP_ID: data.FavouritePersonsID
                   })}
-                ></GooglePlayButton>
+                ></GooglePlayButton> */}
               </View>
             );
           })}
@@ -81,18 +89,36 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     flex: 1,
   },
-  button: {
-    backgroundColor: "#48C9B0",
-    paddingVertical: 20,
-    width: "90%",
-    alignItems: "center",
-    borderRadius: 5,
-    marginTop: 20,
-  },
+  // button: {
+  //   backgroundColor: "#48C9B0",
+  //   paddingVertical: 20,
+  //   width: "90%",
+  //   alignItems: "center",
+  //   borderRadius: 5,
+  //   marginTop: 20,
+  // },
   buttonStyling: {
     marginTop: 20,
     marginBottom: 10,
     borderRadius: 15,
+  },
+  button: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 10,
+    elevation: 3,
+    width:800,
+    margin: 20,
+    backgroundColor: '#06038D',
+  },
+  text: {
+    fontSize: 22,
+    lineHeight: 21,
+    fontWeight: 'bold',
+    letterSpacing: 0.25,
+    color: 'white',
   },
 });
 
