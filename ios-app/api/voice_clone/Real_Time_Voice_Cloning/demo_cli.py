@@ -89,19 +89,21 @@ def text_to_speech_voice_cloner(dialogues):
             # Trim excess silences to compensate for gaps in spectrograms (issue #53)
             generated_wav = encoder.preprocess_wav(generated_wav)
 
+            phrase = phrase.replace("!", "")
+            phrase = phrase.replace("?", "")
             # Save it on the disk
-            filename = ("voice_clone\\Real_Time_Voice_Cloning\\audio_clips\output\\"+phrase+".wav").replace("?", "")
+            filename = ("voice_clone\\Real_Time_Voice_Cloning\\audio_clips\output\\"+phrase+".wav")
             print(generated_wav.dtype)
             sf.write(filename, generated_wav.astype(np.float32), synthesizer.sample_rate)      
             print("\nSaved output as %s\n\n" % filename)
 
+            # # convert .wav files into mp3
+            # phrase = phrase.replace('?','')
+            # phrase = phrase.replace('.','')
+            # AudioSegment.from_wav("voice_clone\\Real_Time_Voice_Cloning\\audio_clips\output\\"+phrase+".wav").export("voice_clone\\Real_Time_Voice_Cloning\\audio_clips\output\\mp3\\"+phrase+".mp3", format="mp3")
 
         except Exception as e:
             print("Caught exception: %s" % repr(e))
             print("Restarting\n")
 
-    # convert .wav files into mp3
-    for phrase in dialogues:
-        phrase = phrase.replace('?','')
-        phrase = phrase.replace('.','')
-        AudioSegment.from_wav("voice_clone\\Real_Time_Voice_Cloning\\audio_clips\output\\"+phrase+".wav").export("voice_clone\\Real_Time_Voice_Cloning\\audio_clips\output\\mp3\\"+phrase+".mp3", format="mp3")
+    
