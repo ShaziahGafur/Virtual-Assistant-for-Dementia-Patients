@@ -13,7 +13,7 @@ const fetchData = async (associatedPatientID) => {
     headers: { "Content-Type": "application/json" },
   };
   const response = await axios.get(
-    'http://100.67.0.68:5000' + "/db/favouritepersons",
+    REACT_APP_BACKEND_API + "/db/favouritepersons",
     {
       headers: header,
       method: "GET",
