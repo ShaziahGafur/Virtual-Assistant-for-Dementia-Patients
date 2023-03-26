@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, Pressable, Text } from "react-native";
 import { REACT_APP_BACKEND_API } from "@env"
 import { GooglePlayButton } from "@freakycoder/react-native-button";
 import axios from "axios";
@@ -43,18 +43,15 @@ const PatientSelect = ({ navigation }) => {
         patients.map((data, id) => {
           return (
             <View key={id}>
-              <GooglePlayButton
-                style={styles.buttonStyling}
-                backgroundColor="#06038D"
-                text={data.FirstName + " " + data.LastName}
-                textColor="#fff"
-                rippleColor="white"
-                onPress={() =>
-                  navigation.navigate("FP Select", {
-                    patientID: data.PatientID,
-                  })
-                }
-              ></GooglePlayButton>
+              <Pressable
+              style={styles.button}
+               onPress={() =>
+                navigation.navigate("FP Select", {
+                  patientID: data.PatientID,
+                })
+              }>
+                <Text style={styles.text}>{data.FirstName + " " + data.LastName}</Text>
+              </Pressable>
             </View>
           );
         })}
@@ -68,18 +65,36 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     alignItems: "center",
   },
-  button: {
-    backgroundColor: "#48C9B0",
-    paddingVertical: 20,
-    width: "90%",
-    alignItems: "center",
-    borderRadius: 5,
-    marginTop: 20,
-  },
+  // button: {
+  //   backgroundColor: "#48C9B0",
+  //   paddingVertical: 20,
+  //   width: "90%",
+  //   alignItems: "center",
+  //   borderRadius: 5,
+  //   marginTop: 20,
+  // },
   buttonStyling: {
     marginTop: 20,
     marginBottom: 10,
     borderRadius: 15,
+  },
+  button: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 10,
+    elevation: 3,
+    width:800,
+    margin: 20,
+    backgroundColor: '#06038D',
+  },
+  text: {
+    fontSize: 22,
+    lineHeight: 21,
+    fontWeight: 'bold',
+    letterSpacing: 0.25,
+    color: 'white',
   },
 });
 

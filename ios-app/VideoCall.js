@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Text, Button } from "react-native";
+import { StyleSheet, View, Text, Image, TouchableOpacity} from "react-native";
 import { REACT_APP_BACKEND_API } from "@env"
 import { Audio } from "expo-av";
 import { GooglePlayButton } from "@freakycoder/react-native-button";
 import axios from "axios";
 import PlayAudioVideo from "./PlayAudioVideo";
+import hangup from './assets/hangup.png';
+import { useIsFocused } from "@react-navigation/native";
+
+
 console.log(REACT_APP_BACKEND_API);
 
 const recordingOptions = {
+  isMeteringEnabled:true,
   // android not currently in use, but parameters are required
   android: {
     extension: ".m4a",
@@ -33,10 +38,16 @@ const recordingOptions = {
 const patient_ID = 1;
 const FP_ID = 1;
 
+const RECORDING_STOP_SECONDS = 2 * 1000 / 500; // 5 seconds
+const RECORDING_STOP_DB = -27; // if its less than -20, keep going
+let counter = 0;
+
 let recording = new Audio.Recording();
 let stepOne;
 
 export default function Dialogue({ route, navigation }) {
+
+  const isFocused = useIsFocused();
 
   // const { patient_ID, FP_ID } = route.params;
 
@@ -44,50 +55,40 @@ export default function Dialogue({ route, navigation }) {
   const [transcript, setTranscript] = React.useState("");
   const [soundIsPlaying, setSoundIsPlaying] = React.useState(false);
   const [recordingLocation, setRecordingLocation] = React.useState("");
+  const [recordingStatus, setRecordingStatus] = React.useState(Audio.RecordingStatus);
+  const [videoFinished, setVideoFinished] = React.useState(false);
 
   const [sound, setSound] = React.useState();
   const [loadingScreen, setLoadingScreen] = React.useState(true);
   const [isFetching, setIsFetching] = React.useState(false);
 
-  const THIRTY_S = 8 * 1000; // this was 2 before
-
   useEffect(() => {
-    startAsyncRecording = async () => {
-      await startRecording();
-    };
-
-    stopAsyncRecording = async () => {
-      await stopRecording();
-    };
-
-    asyncGetTranscription = async () => {
-      await getRecordingTranscription();
-    };
+   
+    if (isFocused == true){
     if (loadingScreen == true){
-    downloadFPMedia();
-    }
-    else{
-    setTimeout(function() {
-      startAsyncRecording();
-      const interval = setInterval(() => {
-        if (stepOne == false || stepOne == undefined) {
-          console.log("in the step of stopping recording + get transcript");
-          stopAsyncRecording();
-          asyncGetTranscription();
-          stepOne = true;
-        } else {
-          console.log("in the step of rerecording");
-          startAsyncRecording();
-          stepOne = false;
+      // you need this or else it won't populate the prompts on the backend
+      downloadFPMedia();
+      }
+      else{
+        console.log(recordingStatus);
+        if (videoFinished != undefined && videoFinished == true){
+            startAsyncRecording();
         }
-      }, THIRTY_S);
+      }
+    }
+  }, [loadingScreen, isFocused, videoFinished]);
 
-      return () => {
-        clearInterval(interval);
-      };
-    }, 3000);
-  }
-  }, [loadingScreen]);
+  startAsyncRecording = async () => {
+    await startRecording();
+  };
+
+  stopAsyncRecording = async () => {
+    await stopRecording();
+  };
+
+  asyncGetTranscription = async () => {
+    await getRecordingTranscription();
+  };
 
   async function downloadFPMedia() {
     const header = {
@@ -113,11 +114,48 @@ export default function Dialogue({ route, navigation }) {
     }    
   }
 
+  function handleVideoFinishedChange(videoFinishedStatus){
+    console.log("in handle video finished change");
+  }
+
+  function checkIfShouldStopRecording(status) {
+    // if it is currently recording
+    if (status.isRecording == true && status.durationMillis > 0){
+      console.log(counter);
+      if (status.metering < RECORDING_STOP_DB){
+        counter += 1;
+      }
+      else{
+        counter = 0;
+      }
+      if (counter > RECORDING_STOP_SECONDS){
+        counter = 0;
+        stopAsyncRecording();
+        asyncGetTranscription();
+      }
+    }
+  }
+
   async function startRecording() {
+    console.log("recording status:");
+    console.log(recordingStatus);
+    if (recordingStatus == undefined || (recordingStatus.isRecording == false && recordingStatus.canRecord == true)){
     recording = new Audio.Recording();
     try {
       console.log("Requesting permissions..");
       await Audio.requestPermissionsAsync();
+      recording.setOnRecordingStatusUpdate((status) =>
+      {
+        // setRecordingStatus(status);
+        /*
+        Metering: A number that's the most recent reading of the loudness in dB. 
+        The value ranges from –160 dBFS, indicating minimum power, to 0 dBFS, 
+        indicating maximum power.*/
+        checkIfShouldStopRecording(status);
+        console.log(status)
+      }
+        
+    );
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
@@ -132,16 +170,39 @@ export default function Dialogue({ route, navigation }) {
       console.error("Failed to start recording", err);
     }
   }
+  else{
+    console.log("tried to start recording, but it's already recording.")
+  }
+  }
+
+  async function endCall(){
+    console.log("call ended!");
+    console.log(recordingStatus);
+    // if (recordingStatus != undefined){
+    //   stopRecording();
+    // }
+    // if (recordingStatus.isRecording == true){ // is currently recording, stop it immediately
+    //   await stopRecording();
+    // }
+    // recording = new Audio.Recording();
+    navigation.navigate("Home");
+  }
 
   async function stopRecording() {
+    try{
     console.log("Stopping recording..");
     recording.stopAndUnloadAsync();
     const uri = recording.getURI();
     setRecordingLocation(uri);
     console.log("Recording stopped and stored at", uri);
+    }
+    catch (error){
+      console.log(error);
+    }
   }
 
   async function getRecordingTranscription() {
+    console.log("in async get transcription!");
     setIsFetching(true);
     try {
       const uri = recording.getURI();
@@ -178,7 +239,12 @@ export default function Dialogue({ route, navigation }) {
   return (
     <View style={styles.video}>
       {recording && <Text>Recording</Text>}
-      {<PlayAudioVideo loadingScreen={loadingScreen}></PlayAudioVideo>}
+      {<PlayAudioVideo loadingScreen={loadingScreen} videoFinished={videoFinished} setVideoFinished={setVideoFinished}></PlayAudioVideo>}
+      <View style={styles.hangupView}>
+      <TouchableOpacity onPress={()=> endCall()}>
+      <Image source={hangup} style={styles.hangup} alt="hangup." />
+      </TouchableOpacity>
+      </View>
       {!isFetching && transcript && <Text>{transcript}</Text>}
     </View>
   );
@@ -210,4 +276,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 15,
   },
+  hangupView:{
+    alignItems:'center',
+    justifyContent: 'center',
+  },
+  hangup :{
+    resizeMode: 'contain', 
+    width: 80,
+    height:80,
+    marginBottom: 100
+  }
 });

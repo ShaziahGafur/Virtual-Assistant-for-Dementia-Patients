@@ -15,6 +15,7 @@ from pydub.playback import play
 # Imports the Google Cloud client library
 from google.cloud import speech
 from google.cloud import storage
+
 import glob, os
 from os import listdir
 from os.path import isfile, join
@@ -34,6 +35,9 @@ app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 unused_prompts = []
+answers = {}
+prompts_list = []
+matched_questions = {}
 p_name = 'Mirza'
 fp_name = 'Shaziah'
 hospital = 'North York General Hospital'
@@ -52,29 +56,6 @@ seasons = [('winter', (date(year_int,  1,  1),  date(year_int,  3, 20))),
            ('winter', (date(year_int, 12, 21),  date(year_int, 12, 31)))]
 season = next(season for season, (start, end) in seasons
                 if start <= datetime.today().date() <= end)
-
-greetings = ["Hi!",
-            "Hello!",
-            "Hey!",
-            "Hello {0}".format(p_name),
-            "Hi {0}, nice to see you again!".format(p_name)]
-
-prompts = ["How are you doing today?",
-            "Do you know where you are?",
-            # "Do you know what year it is?",
-            "Do you know what month it is?",
-            "Do you know what season it is?",
-            "How many children do you have?",
-            "Do you have a spouse What is their name?",
-            # "Where do you live?",
-            "What are your hobbies?",
-            "Are you feeling scared or afraid Tell me more about how you are feeling.",
-            "Do you like to read?",
-            "Do you like to sew?",
-            "Do you like to exercise?",
-            "Tell me about your friends in school.",
-            "Tell me about your children."
-            ]
 
 @app.route('/time')
 @cross_origin()
@@ -119,6 +100,99 @@ def transcribe_sample_audio():
 
     return {"transcript": "error: EOF"}
 
+@app.route('/download_fp_media', methods=["GET"])
+def download_FP_media_dialogue():
+    print("in download_FP_media_dialogue!!")
+    patient_ID = request.args.get("patient_ID")
+    FP_ID = request.args.get("FP_ID")
+
+    print(patient_ID, FP_ID)
+
+    decision_setup()
+
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_APPLICATION_CREDENTIALS
+    client=storage.Client()
+    bucket_name = "familiar-person" 
+
+    finished_videos_folder = "Patients/"+patient_ID+"/Familiar Person/"+FP_ID+"/FinishedVideos/"
+    videos_folder="Patients/"+patient_ID+"/Familiar Person/"+FP_ID+"/Videos/"
+    audio_folder="Patients/"+patient_ID+"/Familiar Person/"+FP_ID+"/Audio/"
+
+    # Retrieve all blobs with a prefix matching the folder
+    destination_dir = "tmp/media_from_bucket/fp_videos/"
+    bucket=client.get_bucket(bucket_name)
+
+    # this won't throw an error if this doesn't exist
+    # however, it will return an empty list, which is why the below if statement must be <= 1
+    finished_video_blobs = list(bucket.list_blobs(prefix=finished_videos_folder))
+
+    video_blobs=list(bucket.list_blobs(prefix=videos_folder))
+    audio_blobs=list(bucket.list_blobs(prefix=audio_folder))
+
+    # the first in the list will always be the own folder, but should probably make it so that 
+    # it will check if the number of videos in the cloud bucket match the number of 
+    # prompts there are, or else it will never make videos of new prompts if the folder is not empty
+    if (len(finished_video_blobs) <= 1):
+        print("Videos have NOT been created! Creating now:")
+        for blob in audio_blobs:
+            if(not blob.name.endswith("/")):
+                file_name = blob.name.split("/")[-1]
+                # only download mp3 files, not wav ones
+                if file_name[-4:] == ".mp3":
+                    print(file_name)
+                    blob.download_to_filename(destination_dir+file_name)
+
+        for blob in video_blobs:
+            if(not blob.name.endswith("/")):
+                file_name = blob.name.split("/")[-1]
+                print(file_name)
+                # download video from file bucket
+                file_path = destination_dir+file_name[:-4] # file path without .mp4
+                blob.download_to_filename(file_path + "_no_audio.mp4")
+
+                # create final video with audio
+                video_clip = VideoFileClip(file_path + "_no_audio.mp4")
+
+                video_with_audio = video_clip.set_audio(AudioFileClip(file_path + ".mp3"))
+                video_with_audio.write_videofile(file_path + ".mp4",
+                                codec='libx264',
+                                audio_codec='aac',
+                                temp_audiofile='temp-audio.m4a',
+                                remove_temp=True)
+
+                # remove clips that are no longer necessary
+                os.remove(file_path + "_no_audio.mp4")
+                os.remove(file_path + ".mp3")
+
+        print("Videos and Audio combined, now uploading to Google Cloud FinishedVideos folder")
+
+        for file in os.listdir(destination_dir):
+            if file.endswith(".mp4"):
+                complete_file_name = os.path.join(destination_dir, file)
+                blob = bucket.blob(finished_videos_folder + file)
+                blob.upload_from_filename(complete_file_name)
+
+
+    else:
+        print("Videos are already created! Pulling from the FinishedVideos folder")
+        for blob in finished_video_blobs:
+            if(not blob.name.endswith("/")):
+                file_name = blob.name.split("/")[-1]
+                # download video from file bucket
+                file_path = destination_dir
+                blob.download_to_filename(file_path + file_name)
+
+    print("Videos all downloaded! Starting video call set-up.")
+
+    # set up initial greeting
+    shutil.copy(destination_dir+"How are you doing today.mp4", "tmp/media_from_bucket/")
+    os.rename("tmp/media_from_bucket/How are you doing today.mp4", "tmp/media_from_bucket/new_video_clip.mp4")
+
+    global unused_prompts
+    unused_prompts = prompts_list.copy()
+    unused_prompts.remove("How are you doing today?")
+
+    return {"Result": "Success"}
 
 @app.route('/transcribe_audio', methods=["POST"])
 def transcribe_audio(request):
@@ -163,123 +237,43 @@ def transcribe_audio(request):
 
 ### This function takes in a particular patient, FP, and conversation decision
 @app.route('/download_media', methods=["POST"])
-def download_media(decision):
-    
-    ## Setting up dummy parameters
-    patientID = 1 # ID of patient
-    FPID = 1 # FP's ID for that particular patient
+def prepare_video(decision):
     prompts = re.split("\? |\. |\! |\, ", decision)
+    videos_dir = "tmp/media_from_bucket/fp_videos/"
+    destination_dir = "tmp/media_from_bucket/"
 
-    bucket_name = "familiar-person" 
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_APPLICATION_CREDENTIALS
-
-    storage_client = storage.Client()
-
-    bucket = storage_client.bucket(bucket_name)
-
-    video_clips = []
+    video_clip_filenames = []
 
     for prompt in prompts:
         print("prompt: ", prompt)
         prompt = prompt.replace('?', '')
         prompt = prompt.replace('.', '')
 
-        try:
-            # Set path to download audio file from
-            source_blob_name_audio = 'Patients/'+str(patientID)+'/Familiar Person/'+str(FPID)+"/Audio/"+str(prompt)+".mp3"
-            blob_audio = bucket.blob(source_blob_name_audio)
+        if len(prompts) == 1:
+            shutil.copy(videos_dir+prompt+".mp4", destination_dir)
+            os.rename(destination_dir+prompt+".mp4", destination_dir+"new_video_clip.mp4")
+            return
 
-            # Set path to download video file from
-            source_blob_name_video = 'Patients/'+str(patientID)+'/Familiar Person/'+str(FPID)+"/Videos/"+str(prompt)+".mp4"
-            blob_video = bucket.blob(source_blob_name_video)
+        video_clip_filenames.append(videos_dir+prompt+".mp4")
 
-            # EDIT FILE PATH TO SAVE MEDIA FILES
-            destination_dir = "tmp/media_from_bucket/"
-            destination_file_name_audio = destination_dir+prompt+"_audio.mp3"
-            destination_file_name_video = destination_dir+prompt+"_video.mp4"
-
-            start_byte = 0 # Reading from beginning
-            end_byte = 99999999 # SETTING MAX SIZE FOR VIDEO & AUDIO
-
-            # Downloading video and audio clips from bucket
-            blob_audio.download_to_filename(destination_file_name_audio, start=0, end=end_byte)
-
-            print("\n[SUCCESS] Downloaded bytes {} to {} of audio object {} from bucket {} to local file {}.".format(
-                start_byte, end_byte, source_blob_name_audio, bucket_name, destination_file_name_audio
-            ))
-
-            blob_video.download_to_filename(destination_file_name_video, start=0, end=end_byte)
-
-            print("\n[SUCCESS] Downloaded bytes {} to {} of video object {} from bucket {} to local file {}.".format(
-                start_byte, end_byte, source_blob_name_video, bucket_name, destination_file_name_video
-            ))
-
-            video_clip = VideoFileClip(destination_file_name_video)
-
-            if len(prompts) == 1:
-                video_out_file = destination_dir+"new_video_clip.mp4"
-            else:
-                video_out_file = destination_dir+prompt+".mp4"
-
-            video_clip = VideoFileClip(destination_file_name_video)
-
-            video_with_new_audio = video_clip.set_audio(AudioFileClip(destination_file_name_audio)) 
-            video_with_new_audio.write_videofile(video_out_file, 
-                            codec='libx264', 
-                            audio_codec='aac', 
-                            temp_audiofile='temp-audio.m4a', 
-                            remove_temp=True)
-            
-            video_clips.append(video_with_new_audio)
-
-        except Exception as e: 
-            # if str(e).startswith('404'):
-            #     print("[WARNING] Did not find file(s) in bucket! Perhaps this prompt is invalid.\n")
-            #     print(e)
-
-            # else:
-            #     print("[ERROR]: Could not download media files from bucket.\n")
-            #     print(e)
-
-            # Play default video 
-            print("[FAILURE] Could not download media files from bucket for prompt: " + prompt + " Retrieving default video & audio.\n")
-            
-            # Set path to download audio file from
-            # source_blob_name_audio = 'Patients/'+str(patientID)+'/Familiar Person/'+str(FPID)+"/Audio/Hi.mp3"
-            # blob_audio = bucket.blob(source_blob_name_audio)
-
-            # # Set path to download video file from
-            # source_blob_name_video = 'Patients/'+str(patientID)+'/Familiar Person/'+str(FPID)+"/Videos/Hi.mp4"
-            # blob_video = bucket.blob(source_blob_name_video)
-
-            # # Downloading video and audio clips from bucket
-            # blob_audio.download_to_filename(destination_file_name_audio, start=0, end=end_byte)
-
-            # print("\n[SUCCESS] Downloaded bytes {} to {} of DEFAULT audio object {} from bucket {} to local file {}.".format(
-            #     start_byte, end_byte, source_blob_name_audio, bucket_name, destination_file_name_audio
-            # ))
-
-            # blob_video.download_to_filename(destination_file_name_video, start=0, end=end_byte)
-
-            # print("\n[SUCCESS] Downloaded bytes {} to {} of DEFAULT video object {} from bucket {} to local file {}.".format(
-            #     start_byte, end_byte, source_blob_name_video, bucket_name, destination_file_name_video
-            # ))
-
-    if len(video_clips) > 1:
-        final_video = concatenate_videoclips(video_clips)
-        final_video.write_videofile("tmp/media_from_bucket/new_video_clip.mp4",
-                            codec='libx264', 
-                            audio_codec='aac', 
-                            temp_audiofile='temp-audio.m4a', 
-                            remove_temp=True)
+    clips = [VideoFileClip(c) for c in video_clip_filenames]
         
-    for prompt in prompts:
-        for file in glob.glob("tmp/media_from_bucket/" + prompt + "*"):
-            os.remove(file)
+    final_video = concatenate_videoclips(clips)
+    final_video.write_videofile("tmp/media_from_bucket/new_video_clip.mp4",
+                                codec='libx264',
+                                audio_codec='aac',
+                                temp_audiofile='temp-audio.m4a',
+                                remove_temp=True)
 
     return
 
 def decision_setup():
+    global answers, prompts_list, matched_questions
+    greetings = ["Hi!",
+             "Hello!",
+             "Hey!",
+             "Hello {0}".format(p_name),
+             "Hi {0}, nice to see you again!".format(p_name)]
 
     answers = {
         # "who are you" : ["I am {0}.".format(fp_name)],
@@ -290,6 +284,23 @@ def decision_setup():
         # "what year is it" : ["It is the year {0}.".format(year)],
         # "what season is it" : ["It is {0} now.".format(season)],
     }
+
+    prompts_list = ["How are you doing today?",
+            "Do you know where you are?",
+            # "Do you know what year it is?",
+            "Do you know what month it is?",
+            "Do you know what season it is?",
+            "How many children do you have?",
+            "Do you have a spouse What is their name?",
+            # "Where do you live?",
+            "What are your hobbies?",
+            "Are you feeling scared or afraid Tell me more about how you are feeling.",
+            "Do you like to read?",
+            "Do you like to sew?",
+            "Do you like to exercise?",
+            "Tell me about your friends in school.",
+            "Tell me about your children."
+            ]
 
     matching_questions = {
         ('where', 'where am i'): "where am i",
@@ -304,7 +315,7 @@ def decision_setup():
         for key in k:
             matched_questions[key] = v
     
-    return greetings, answers, prompts, matched_questions
+    return
 
 def find_matching_question(matched_questions, phrase):
   question = phrase
@@ -315,7 +326,7 @@ def find_matching_question(matched_questions, phrase):
   
   return question
 
-def get_response(answers, prompts, matched_questions, p_input):
+def get_response(p_input):
   global unused_prompts
   phrases = re.split("\? |\. |\! |\, ", p_input.lower())
   # re.split() does not remove last phrase's punctuation
@@ -324,35 +335,43 @@ def get_response(answers, prompts, matched_questions, p_input):
   response = ""
 #   print("phrases: ", phrases)
 
+#   print("answers: ", answers)
+#   print("prompts_list: ", prompts_list)
+#   print("answers: ", matched_questions)
+#   print("unused_prompts: ", unused_prompts)
+
   for phrase in phrases:
     question = find_matching_question(matched_questions, phrase)
     if question in answers:
       response = response + random.choice(answers[question]) + " "
   
   if not unused_prompts:
-      unused_prompts = prompts.copy()
+      unused_prompts = prompts_list.copy()
 
   prompt = random.choice(unused_prompts)
   unused_prompts.remove(prompt)
 
+  if "You are in {0}.".format(hospital) in response and prompt == "Do you know where you are?":
+    # get new prompt so that we don't ask them if they know where they are right after telling them where they are
+    prompt = random.choice(unused_prompts)
+    unused_prompts.remove(prompt)
+
   response = response + prompt
 
   print(response)
-  download_media(response)
+  prepare_video(response)
   
   return response
 
 @app.route('/generate_decision', methods=["POST"])
 def generate_decision():
-    # download_media("How are you doing today?")
     transcript = transcribe_audio(request)
     return_value = {"Return":"Failure"}
     print("***TRANSCRIPT: " + transcript["Transcript"] + "\n")
     # if transcript["Transcript"]:
     # call the decision functions
-    greetings, answers, prompts, matched_questions = decision_setup()
     # change return_value here
-    return_value = {"Return": get_response(answers, prompts, matched_questions, transcript["Transcript"])}
+    return_value = {"Return": get_response(transcript["Transcript"])}
     print("***CHOSEN RESPONSE:", return_value["Return"])
     return return_value
 
