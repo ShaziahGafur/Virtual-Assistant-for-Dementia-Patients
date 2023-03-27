@@ -97,10 +97,10 @@ def text_to_speech_voice_cloner(dialogues):
             sf.write(filename, generated_wav.astype(np.float32), synthesizer.sample_rate)      
             print("\nSaved output as %s\n\n" % filename)
 
-            # # convert .wav files into mp3
-            # phrase = phrase.replace('?','')
-            # phrase = phrase.replace('.','')
-            # AudioSegment.from_wav("voice_clone\\Real_Time_Voice_Cloning\\audio_clips\output\\"+phrase+".wav").export("voice_clone\\Real_Time_Voice_Cloning\\audio_clips\output\\mp3\\"+phrase+".mp3", format="mp3")
+            # convert .wav files into mp3
+            phrase = phrase.replace('?','')
+            phrase = phrase.replace('.','')
+            AudioSegment.from_wav("voice_clone\\Real_Time_Voice_Cloning\\audio_clips\output\\"+phrase+".wav").export("voice_clone\\Real_Time_Voice_Cloning\\audio_clips\output\\mp3\\"+phrase+".mp3", format="mp3")
 
         except Exception as e:
             print("Caught exception: %s" % repr(e))
