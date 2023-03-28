@@ -225,6 +225,67 @@ def transcribe_audio(request):
         
     return {"Transcript": transcript}
 
+@app.route('/content_classification', methods=["POST"])
+def content_classification(text_input):
+
+    num_words = len(text_input.split())
+    # Can't use Google's if the number of words is less than 20
+    if num_words <= 20:
+        return {}
+
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_APPLICATION_CREDENTIALS
+
+    language_client = language_v1.LanguageServiceClient()
+
+    document = language_v1.Document(
+        content=text, type_=language_v1.Document.Type.PLAIN_TEXT
+    )
+    response = language_client.classify_text(request={"document": document})
+    categories = response.categories
+
+    result = {}
+
+    for category in categories:
+        # Turn the categories into a dictionary of the form:
+        # {category.name: category.confidence}, so that they can
+        # be treated as a sparse vector.
+        result[category.name] = category.confidence
+
+    if verbose:
+        print(text)
+        for category in categories:
+            print("=" * 20)
+            print("{:<16}: {}".format("category", category.name))
+            print("{:<16}: {}".format("confidence", category.confidence))
+
+    return result
+
+def naive_content_classification(text_input):
+    #categories_list = list(categories.keys())
+    categories_list = ["Time", "Life", "Hobbies", "Negative Feelings"]
+    # Don't use negative feelings rn since the sentiment analysis is better
+
+    time_keywords = ["month", "time", "year", "day", "season"]
+    life_keywords = ["children", "spouse", "partner", "husband", "wife", "school", "child", 
+    "friends", "friend", "sibling", "siblings", "brother","brothers", "sister", "sisters",
+    "mother", "mom", "father", "dad", "grandchild", "grandchildren", "granddaughter", "grandson"]
+    hobbies_keywords = ["hobby", "hobbies", "read", "reading", "sew", "sewing", "bingo", "games", "card games", "books",
+        "crochet", "knit"]
+
+    for keyword in time_keywords:
+        if keyword in text_input:
+            return "Time"
+
+    for keyword in life_keywords:
+        if keyword in text_input:
+            return "Life"
+
+    for keyword in hobbies_keywords:
+        if keyword in text_input:
+            return "Hobbies"
+
+    return None
+
 @app.route('/sentiment_analysis', methods=["POST"])
 def sentiment_analysis(text_input):
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_APPLICATION_CREDENTIALS
@@ -382,6 +443,7 @@ def get_response(p_input):
 #   print("unused_prompts: ", unused_prompts)
 
   input_sentiment = sentiment_analysis(p_input)
+  content_class = naive_content_classification(p_input)
 
   for phrase in phrases:
     question = find_matching_question(matched_questions, phrase)
@@ -392,8 +454,22 @@ def get_response(p_input):
       unused_prompts = prompts_list.copy()
 
   if input_sentiment is None or input_sentiment > -0.5:
-    prompt = random.choice(unused_prompts)
-    unused_prompts.remove(prompt)
+    if content_class is None:
+        prompt = random.choice(unused_prompts)
+        unused_prompts.remove(prompt)
+    else:
+        content_prompts = categories[content_class]
+        for content_prompt in content_prompts:
+            if content_prompt in unused_prompts:
+                prompt = content_prompt
+                unused_prompts.remove(prompt)
+                break
+
+        # If all of the prompts have been used recently
+        if prompt is None:
+            prompt = random.choice(unused_prompts)
+            unused_prompts.remove(prompt)
+
   else:
     # Fairly negative sentiment
     feelings_prompts = categories["Negative Feelings"]
