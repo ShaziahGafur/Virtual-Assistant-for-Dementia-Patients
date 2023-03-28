@@ -102,6 +102,7 @@ const styles = StyleSheet.create({
   formContainer: {
     flex: 1,
     justifyContent: "center",
+    paddingHorizontal:"2%"
   },
   titleText: {
     fontSize: 60,
@@ -129,7 +130,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     elevation: 3,
     width:800,
-    margin: 20,
+    marginVertical: 20,
     backgroundColor: '#06038D',
   },
   text: {
