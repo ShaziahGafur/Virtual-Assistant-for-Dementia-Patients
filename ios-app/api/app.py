@@ -227,7 +227,7 @@ def transcribe_audio(request):
 
 @app.route('/content_classification', methods=["POST"])
 def content_classification(text_input):
-
+    print("Now doing content classification through Google")
     num_words = len(text_input.split())
     # Can't use Google's if the number of words is less than 20
     if num_words <= 20:
@@ -238,27 +238,76 @@ def content_classification(text_input):
     language_client = language_v1.LanguageServiceClient()
 
     document = language_v1.Document(
-        content=text, type_=language_v1.Document.Type.PLAIN_TEXT
+        content=text_input, type_=language_v1.Document.Type.PLAIN_TEXT
     )
     response = language_client.classify_text(request={"document": document})
-    categories = response.categories
+    categories_analyzed = response.categories
 
     result = {}
 
-    for category in categories:
+    for category in categories_analyzed:
         # Turn the categories into a dictionary of the form:
         # {category.name: category.confidence}, so that they can
         # be treated as a sparse vector.
         result[category.name] = category.confidence
 
-    if verbose:
-        print(text)
-        for category in categories:
-            print("=" * 20)
-            print("{:<16}: {}".format("category", category.name))
-            print("{:<16}: {}".format("confidence", category.confidence))
+    content_class = categories_analyzed[0].name
+    print("Google classified this as:", content_class)
+    return_content_class = None
+    time_categories = ["/Reference/General Reference/Time & Calendars",
+        "/Hobbies & Leisure/Special Occasions/Holidays & Seasonal Events",
+        "/News/Weather"]
 
-    return result
+    life_categories = ["/People & Society/Family & Relationships",
+        "/People & Society/Family & Relationships/Family",
+        "/People & Society/Family & Relationships/Marriage",
+        "/People & Society/Kids & Teens",
+        "/Hobbies & Leisure/Special Occasions/Anniversaries"]
+
+    hobbies_categories = ["/Hobbies & Leisure/Other",
+        "/Hobbies & Leisure/Crafts/Art & Craft Supplies",
+        "/Hobbies & Leisure/Crafts/Ceramics & Pottery",
+        "/Hobbies & Leisure/Crafts/Fiber & Textile Arts",
+        "/Hobbies & Leisure/Crafts/Other",
+        "/Hobbies & Leisure/Outdoors/Fishing",
+        "/Hobbies & Leisure/Outdoors/Hiking & Camping",
+        "/Hobbies & Leisure/Outdoors/Hunting & Shooting",
+        "/Hobbies & Leisure/Outdoors/Other",
+        "/Hobbies & Leisure/Radio Control & Modeling/Model Trains & Railroads",
+        "/Hobbies & Leisure/Radio Control & Modeling/Other",
+        "/Hobbies & Leisure/Recreational Aviation",
+        "/Hobbies & Leisure/Water Activities/Boating",
+        "/Hobbies & Leisure/Water Activities/Diving & Underwater Activities",
+        "/Hobbies & Leisure/Water Activities/Surf & Swim",
+        "/Hobbies & Leisure/Water Activities/Other",
+        "/Books & Literature/Audiobooks",
+        "/Books & Literature/Book Retailers",
+        "/Books & Literature/Children's Literature",
+        "/Books & Literature/E-Books",
+        "/Books & Literature/Fan Fiction",
+        "/Books & Literature/Literary Classics",
+        "/Books & Literature/Poetry",
+        "/Books & Literature/Writers Resources",
+        "/Books & Literature/Other",
+        "/Beauty & Fitness/Fitness/Bodybuilding",
+        "/Beauty & Fitness/Fitness/Fitness Equipment & Accessories",
+        "/Beauty & Fitness/Fitness/Fitness Instruction & Personal Training",
+        "/Beauty & Fitness/Fitness/Gyms & Health Clubs",
+        "/Beauty & Fitness/Fitness/High Intensity Interval Training",
+        "/Beauty & Fitness/Fitness/Yoga & Pilates",
+        "/Beauty & Fitness/Fitness/Other",
+        "/Beauty & Fitness/Weight Loss",
+        "Arts & Entertainment"
+        ]
+
+    if content_class in time_categories:
+        return_content_class = "Time"
+    if content_class in life_categories:
+        return_content_class = "Life"
+    if content_class in hobbies_categories:
+        return_content_class = "Hobbies"
+    print("Returned content class:", return_content_class)
+    return return_content_class
 
 def naive_content_classification(text_input):
     #categories_list = list(categories.keys())
@@ -443,7 +492,13 @@ def get_response(p_input):
 #   print("unused_prompts: ", unused_prompts)
 
   input_sentiment = sentiment_analysis(p_input)
-  content_class = naive_content_classification(p_input)
+
+  num_words = len(p_input.split())
+  # Can't use Google's if the number of words is less than 20
+  if num_words <= 20:
+    content_class = naive_content_classification(p_input)
+  else:
+    content_class = content_classification(p_input)
 
   for phrase in phrases:
     question = find_matching_question(matched_questions, phrase)
