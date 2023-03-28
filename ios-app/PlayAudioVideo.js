@@ -84,16 +84,6 @@ export default function PlayAudioVideo({loadingScreen, videoFinished, setVideoFi
         isLooping="True"
         shouldPlay="True"
       />
-      <Video
-        ref={bg_video}
-        style={[styles.video, videoFinished ? styles.notHidden : styles.hidden]}
-        source={require("./assets/bg_video.mp4")}
-        resizeMode="contain"
-        onLoad={() => {bg_video.current.setPositionAsync(0); bg_video.current.setIsMutedAsync(true); bg_video.current.setIsLoopingAsync(true); bg_video.current.playAsync()}}
-        // set isMuted onLoad otherwise it randomly unmutes
-        isLooping="True"
-        shouldPlay="True"
-      />
       </ImageBackground>
     </View>
   );
