@@ -231,7 +231,7 @@ def content_classification(text_input):
     num_words = len(text_input.split())
     # Can't use Google's if the number of words is less than 20
     if num_words <= 20:
-        return {}
+        return None
 
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_APPLICATION_CREDENTIALS
 
@@ -251,63 +251,66 @@ def content_classification(text_input):
         # be treated as a sparse vector.
         result[category.name] = category.confidence
 
-    content_class = categories_analyzed[0].name
-    print("Google classified this as:", content_class)
+    print(categories_analyzed)
     return_content_class = None
-    time_categories = ["/Reference/General Reference/Time & Calendars",
-        "/Hobbies & Leisure/Special Occasions/Holidays & Seasonal Events",
-        "/News/Weather"]
+    if len(categories_analyzed) > 0:
+        content_class = categories_analyzed[0].name
+        print("Google classified this as:", content_class)
+        return_content_class = None
+        time_categories = ["/Reference/General Reference/Time & Calendars",
+            "/Hobbies & Leisure/Special Occasions/Holidays & Seasonal Events",
+            "/News/Weather"]
 
-    life_categories = ["/People & Society/Family & Relationships",
-        "/People & Society/Family & Relationships/Family",
-        "/People & Society/Family & Relationships/Marriage",
-        "/People & Society/Kids & Teens",
-        "/Hobbies & Leisure/Special Occasions/Anniversaries"]
+        life_categories = ["/People & Society/Family & Relationships",
+            "/People & Society/Family & Relationships/Family",
+            "/People & Society/Family & Relationships/Marriage",
+            "/People & Society/Kids & Teens",
+            "/Hobbies & Leisure/Special Occasions/Anniversaries"]
 
-    hobbies_categories = ["/Hobbies & Leisure/Other",
-        "/Hobbies & Leisure/Crafts/Art & Craft Supplies",
-        "/Hobbies & Leisure/Crafts/Ceramics & Pottery",
-        "/Hobbies & Leisure/Crafts/Fiber & Textile Arts",
-        "/Hobbies & Leisure/Crafts/Other",
-        "/Hobbies & Leisure/Outdoors/Fishing",
-        "/Hobbies & Leisure/Outdoors/Hiking & Camping",
-        "/Hobbies & Leisure/Outdoors/Hunting & Shooting",
-        "/Hobbies & Leisure/Outdoors/Other",
-        "/Hobbies & Leisure/Radio Control & Modeling/Model Trains & Railroads",
-        "/Hobbies & Leisure/Radio Control & Modeling/Other",
-        "/Hobbies & Leisure/Recreational Aviation",
-        "/Hobbies & Leisure/Water Activities/Boating",
-        "/Hobbies & Leisure/Water Activities/Diving & Underwater Activities",
-        "/Hobbies & Leisure/Water Activities/Surf & Swim",
-        "/Hobbies & Leisure/Water Activities/Other",
-        "/Books & Literature/Audiobooks",
-        "/Books & Literature/Book Retailers",
-        "/Books & Literature/Children's Literature",
-        "/Books & Literature/E-Books",
-        "/Books & Literature/Fan Fiction",
-        "/Books & Literature/Literary Classics",
-        "/Books & Literature/Poetry",
-        "/Books & Literature/Writers Resources",
-        "/Books & Literature/Other",
-        "/Beauty & Fitness/Fitness/Bodybuilding",
-        "/Beauty & Fitness/Fitness/Fitness Equipment & Accessories",
-        "/Beauty & Fitness/Fitness/Fitness Instruction & Personal Training",
-        "/Beauty & Fitness/Fitness/Gyms & Health Clubs",
-        "/Beauty & Fitness/Fitness/High Intensity Interval Training",
-        "/Beauty & Fitness/Fitness/Yoga & Pilates",
-        "/Beauty & Fitness/Fitness/Other",
-        "/Beauty & Fitness/Weight Loss",
-        "Arts & Entertainment"
-        ]
+        hobbies_categories = ["/Hobbies & Leisure/Other",
+            "/Hobbies & Leisure/Crafts/Art & Craft Supplies",
+            "/Hobbies & Leisure/Crafts/Ceramics & Pottery",
+            "/Hobbies & Leisure/Crafts/Fiber & Textile Arts",
+            "/Hobbies & Leisure/Crafts/Other",
+            "/Hobbies & Leisure/Outdoors/Fishing",
+            "/Hobbies & Leisure/Outdoors/Hiking & Camping",
+            "/Hobbies & Leisure/Outdoors/Hunting & Shooting",
+            "/Hobbies & Leisure/Outdoors/Other",
+            "/Hobbies & Leisure/Radio Control & Modeling/Model Trains & Railroads",
+            "/Hobbies & Leisure/Radio Control & Modeling/Other",
+            "/Hobbies & Leisure/Recreational Aviation",
+            "/Hobbies & Leisure/Water Activities/Boating",
+            "/Hobbies & Leisure/Water Activities/Diving & Underwater Activities",
+            "/Hobbies & Leisure/Water Activities/Surf & Swim",
+            "/Hobbies & Leisure/Water Activities/Other",
+            "/Books & Literature/Audiobooks",
+            "/Books & Literature/Book Retailers",
+            "/Books & Literature/Children's Literature",
+            "/Books & Literature/E-Books",
+            "/Books & Literature/Fan Fiction",
+            "/Books & Literature/Literary Classics",
+            "/Books & Literature/Poetry",
+            "/Books & Literature/Writers Resources",
+            "/Books & Literature/Other",
+            "/Beauty & Fitness/Fitness/Bodybuilding",
+            "/Beauty & Fitness/Fitness/Fitness Equipment & Accessories",
+            "/Beauty & Fitness/Fitness/Fitness Instruction & Personal Training",
+            "/Beauty & Fitness/Fitness/Gyms & Health Clubs",
+            "/Beauty & Fitness/Fitness/High Intensity Interval Training",
+            "/Beauty & Fitness/Fitness/Yoga & Pilates",
+            "/Beauty & Fitness/Fitness/Other",
+            "/Beauty & Fitness/Weight Loss",
+            "Arts & Entertainment"
+            ]
 
-    if content_class in time_categories:
-        return_content_class = "Time"
-    if content_class in life_categories:
-        return_content_class = "Life"
-    if content_class in hobbies_categories:
-        return_content_class = "Hobbies"
-    print("Returned content class:", return_content_class)
-    return return_content_class
+        if content_class in time_categories:
+            return_content_class = "Time"
+        if content_class in life_categories:
+            return_content_class = "Life"
+        if content_class in hobbies_categories:
+            return_content_class = "Hobbies"
+        print("Returned content class:", return_content_class)
+    return return_content_class or None
 
 def naive_content_classification(text_input):
     #categories_list = list(categories.keys())
@@ -491,14 +494,9 @@ def get_response(p_input):
 #   print("answers: ", matched_questions)
 #   print("unused_prompts: ", unused_prompts)
 
-  input_sentiment = sentiment_analysis(p_input)
-
   num_words = len(p_input.split())
-  # Can't use Google's if the number of words is less than 20
-  if num_words <= 20:
-    content_class = naive_content_classification(p_input)
-  else:
-    content_class = content_classification(p_input)
+
+  prompt = None
 
   for phrase in phrases:
     question = find_matching_question(matched_questions, phrase)
@@ -508,38 +506,46 @@ def get_response(p_input):
   if not unused_prompts:
       unused_prompts = prompts_list.copy()
 
-  if input_sentiment is None or input_sentiment > -0.5:
-    if content_class is None:
-        prompt = random.choice(unused_prompts)
-        unused_prompts.remove(prompt)
-    else:
-        content_prompts = categories[content_class]
-        for content_prompt in content_prompts:
-            if content_prompt in unused_prompts:
-                prompt = content_prompt
-                unused_prompts.remove(prompt)
-                break
+  if (num_words <= 0):
+    prompt = random.choice(unused_prompts)
+    unused_prompts.remove(prompt)
+  else: 
+    input_sentiment = sentiment_analysis(p_input)
 
-        # If all of the prompts have been used recently
-        if prompt is None:
+    # Can't use Google's if the number of words is less than 20
+    if num_words <= 20:
+        content_class = naive_content_classification(p_input)
+    else:
+        content_class = content_classification(p_input)
+
+    if input_sentiment is None or input_sentiment > -0.5:
+        if content_class is None:
             prompt = random.choice(unused_prompts)
             unused_prompts.remove(prompt)
+        else:
+            content_prompts = categories[content_class]
+            for content_prompt in content_prompts:
+                if content_prompt in unused_prompts:
+                    prompt = content_prompt
+                    unused_prompts.remove(prompt)
+                    break
 
-  else:
-    # Fairly negative sentiment
-    feelings_prompts = categories["Negative Feelings"]
+            # If all of the prompts have been used recently
+            if prompt is None:
+                prompt = random.choice(unused_prompts)
+                unused_prompts.remove(prompt)
 
-    # Try to take the first value that's in unused prompts
-    prompt = None
-    for feelings_prompt in feelings_prompts:
-      if feelings_prompt in unused_prompts:
-        prompt = feelings_prompt
-        unused_prompts.remove(prompt)
-        break
+    else:
+        # Fairly negative sentiment
+        feelings_prompts = categories["Negative Feelings"]
 
-    # If all of the prompts have been used recently
-    if prompt is None:
-      prompt = random.choice(feelings_prompts)
+        # Try to take the first value that's in unused prompts
+        prompt = None
+        for feelings_prompt in feelings_prompts:
+            if feelings_prompt in unused_prompts:
+                prompt = feelings_prompt
+                unused_prompts.remove(prompt)
+                break
 
   if "You are in {0}.".format(hospital) in response and prompt == "Do you know where you are?":
     # get new prompt so that we don't ask them if they know where they are right after telling them where they are
