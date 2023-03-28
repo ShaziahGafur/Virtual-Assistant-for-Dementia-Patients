@@ -58,10 +58,10 @@ function HomeScreen({ navigation }) {
         style={styles.hospitalPng}
         source={require("./assets/hospital.png")}
       ></Image>
-    {/* <Pressable style={styles.button}
+    <Pressable style={styles.button}
         onPress={() => navigation.navigate("Video Call")}>
           <Text style={styles.text}>Debug</Text>
-        </Pressable> */}
+        </Pressable>
       <Pressable style={styles.button}
         onPress={() => navigation.navigate("Load An Existing Profile")}>
           <Text style={styles.text}>Load An Existing Profile</Text>
