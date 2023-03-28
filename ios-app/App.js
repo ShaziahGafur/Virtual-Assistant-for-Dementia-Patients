@@ -58,31 +58,10 @@ function HomeScreen({ navigation }) {
         style={styles.hospitalPng}
         source={require("./assets/hospital.png")}
       ></Image>
-      {/* <Apis></Apis> */}
-      {/* <GooglePlayButton
-        onPress={() => navigation.navigate("Record Sound")}
-        backgroundColor="#06038D"
-        text="Record Sound"
-        textColor="#fff"
-        rippleColor="white"
-      /> */}
-      {/* <GooglePlayButton
-        onPress={() => navigation.navigate("Video Call")}
-        backgroundColor="#06038D"
-        style={styles.buttonStyling}
-        text="Start Video Call"
-        textColor="#fff"
-        rippleColor="white"
-      /> */}
-      {/* <GooglePlayButton
-      onPress={() => navigation.navigate("Dialogue")}
-      backgroundColor="#06038D"
-      style={styles.buttonStyling}
-
-      text="Dialogue"
-      textColor="#fff"
-      rippleColor="white"
-    /> */}
+    {/* <Pressable style={styles.button}
+        onPress={() => navigation.navigate("Video Call")}>
+          <Text style={styles.text}>Debug</Text>
+        </Pressable> */}
       <Pressable style={styles.button}
         onPress={() => navigation.navigate("Load An Existing Profile")}>
           <Text style={styles.text}>Load An Existing Profile</Text>
@@ -107,25 +86,14 @@ function LoadExistingProfile({ navigation }) {
 function CreateNewProfile({ navigation }) {
   return (
     <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      {/* <SpeechToText></SpeechToText> */}
-      {/* <Text>Create New Profile</Text> */}
-      {/* <CreateProfile></CreateProfile> */}
-      <GooglePlayButton
-        style={styles.buttonStyling2}
-        onPress={() => navigation.navigate("Create A Familiar Person Profile")}
-        text="Create a Familiar Person Profile"
-        backgroundColor="#06038D"
-        textColor="#fff"
-        rippleColor="white"
-      />
-      <GooglePlayButton
-        style={styles.buttonStyling2}
-        onPress={() => navigation.navigate("Create A Patient Profile")}
-        text="Create a Patient Profile"
-        backgroundColor="#06038D"
-        textColor="#fff"
-        rippleColor="white"
-      />
+      <Pressable style={styles.button}
+        onPress={() => navigation.navigate("Create A Familiar Person Profile")}>
+          <Text style={styles.text}>Create A Familiar Person Profile</Text>
+        </Pressable>
+        <Pressable style={styles.button}
+        onPress={() => navigation.navigate("Create A Patient Profile")}>
+          <Text style={styles.text}>Create A Patient Profile</Text>
+        </Pressable>
     </View>
   );
 }
