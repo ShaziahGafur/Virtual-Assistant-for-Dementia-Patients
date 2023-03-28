@@ -31,7 +31,9 @@ fp_name = 'Shaziah'
 hospital = 'North York General Hospital'
 
 tz = timezone('EST')
-date_today = datetime.now(tz).strftime("%B %d, %Y")
+weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+weekday = weekdays[datetime.now(tz).weekday()]
+date_today = weekday + ", " + datetime.now(tz).strftime("%B %d, %Y")
 month = datetime.now(tz).strftime("%B")
 year = datetime.now(tz).strftime("%Y")
 
