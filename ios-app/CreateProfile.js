@@ -335,8 +335,8 @@ export default function CreateProfile() {
       
       const recording_one_uri = recordingOne.getURI();
       console.log(`FILE INFO: ${JSON.stringify(recording_one_uri)}`);
-      const recording_two_uri = recordingTwo.getURI();
-      const recording_three_uri = recordingThree.getURI();
+      // const recording_two_uri = recordingTwo.getURI();
+      // const recording_three_uri = recordingThree.getURI();
 
       const recording_one_file = {
         uri: recording_one_uri,
@@ -344,21 +344,21 @@ export default function CreateProfile() {
         name: "recording_1",
       };
       
-      const recording_two_file = {
-        uri: recording_two_uri,
-        type: "audio/x-wav",
-        name: "recording_2",
-      };
+      // const recording_two_file = {
+      //   uri: recording_two_uri,
+      //   type: "audio/x-wav",
+      //   name: "recording_2",
+      // };
       
-      const recording_three_file = {
-        uri: recording_three_uri,
-        type: "audio/x-wav",
-        name: "recording_3",
-      };
+      // const recording_three_file = {
+      //   uri: recording_three_uri,
+      //   type: "audio/x-wav",
+      //   name: "recording_3",
+      // };
       console.log(recording_one_file);
       formData.append("recordingOneFile", recording_one_file);
-      formData.append("recordingTwoFile", recording_two_file);
-      formData.append("recordingThreeFile", recording_three_file);
+      // formData.append("recordingTwoFile", recording_two_file);
+      // formData.append("recordingThreeFile", recording_three_file);
       formData.append("photoFile", photo_file);
 
       //remember you can't add an object to a form data if its not a file, so you need to following for loop
@@ -446,7 +446,6 @@ export default function CreateProfile() {
         </View>
         <Text></Text>
         <Text style={styles.subtitleText}>Voice Recordings</Text>
-        <Text style={styles.subHeadingText}>Voice Recording 1: Right now it is 2:40 PM on January 17th 2023.</Text>
         <View>
         <View>{! recordingOneLocation && 
               <Button
@@ -462,7 +461,7 @@ export default function CreateProfile() {
         <Button title={"Delete Recording One"} onPress={() => deleteConfirmationAlert(1)}></Button>
       )}
       </View>
-      <View
+      {/* <View
   style={{
     borderBottomColor: 'black',
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -503,16 +502,14 @@ export default function CreateProfile() {
           {recordingThreeLocation && (
         <Button title={"Delete Recording Three"} onPress={() => deleteConfirmationAlert(3)}></Button>
       )}
-      <GooglePlayButton
-          style={styles.buttonStyling}
-          backgroundColor="#06038D"
-          text="Submit"
-          textColor="#fff"
-          rippleColor="white"
+      
+      </View> */}
+      <Pressable
+          style={styles.button}
           onPress={() => onSubmit()}
-        />
-      </View>
-        
+        >
+          <Text style={styles.buttonText}>Submit</Text>
+          </Pressable> 
       </View>
       
     );
@@ -627,5 +624,23 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 15,
     backgroundColor: "white",
+  },
+  button: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 10,
+    elevation: 3,
+    width:800,
+    marginVertical:20,
+    backgroundColor: '#06038D',
+  },
+  buttonText: {
+    fontSize: 22,
+    lineHeight: 21,
+    fontWeight: 'bold',
+    letterSpacing: 0.25,
+    color: 'white',
   },
 });

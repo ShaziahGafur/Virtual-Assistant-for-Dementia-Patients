@@ -512,8 +512,8 @@ def insert_a_favourite_person(request):
     
     photo = files["photoFile"]
     recording_one = files["recordingOneFile"]
-    recording_two = files["recordingTwoFile"]
-    recording_three = files["recordingThreeFile"]
+    # recording_two = files["recordingTwoFile"]
+    # recording_three = files["recordingThreeFile"]
 
     
     request_data = request.form or request.get_json()
@@ -552,27 +552,27 @@ def insert_a_favourite_person(request):
         blob = bucket.blob(google_bucket_link+recording_one.filename) 
         blob.upload_from_filename(stored_recording_one_file)
 
-    # save the recording 2
-    stored_recording_two_file = os.getcwd() + r"/tmp/" + recording_two.filename + ".wav"
-    recording_two.save(stored_recording_two_file)
+    # # save the recording 2
+    # stored_recording_two_file = os.getcwd() + r"/tmp/" + recording_two.filename + ".wav"
+    # recording_two.save(stored_recording_two_file)
 
-    if recording_two:
-        storage_client = storage.Client()
-        bucket = storage_client.bucket(FP_FORM_BUCKET_NAME)
-        # Upload file to Google Bucket (the "familiar-person-form-data" one)
-        blob = bucket.blob(google_bucket_link +recording_two.filename) 
-        blob.upload_from_filename(stored_recording_two_file)
+    # if recording_two:
+    #     storage_client = storage.Client()
+    #     bucket = storage_client.bucket(FP_FORM_BUCKET_NAME)
+    #     # Upload file to Google Bucket (the "familiar-person-form-data" one)
+    #     blob = bucket.blob(google_bucket_link +recording_two.filename) 
+    #     blob.upload_from_filename(stored_recording_two_file)
 
-    # save the recording 3
-    stored_recording_three_file = os.getcwd() + r"/tmp/" + recording_three.filename + ".wav"
-    recording_three.save(stored_recording_three_file)
+    # # save the recording 3
+    # stored_recording_three_file = os.getcwd() + r"/tmp/" + recording_three.filename + ".wav"
+    # recording_three.save(stored_recording_three_file)
 
-    if recording_three:
-        storage_client = storage.Client()
-        bucket = storage_client.bucket(FP_FORM_BUCKET_NAME)
-        # Upload file to Google Bucket (the "familiar-person-form-data" one)
-        blob = bucket.blob(google_bucket_link+recording_three.filename) 
-        blob.upload_from_filename(stored_recording_three_file)
+    # if recording_three:
+    #     storage_client = storage.Client()
+    #     bucket = storage_client.bucket(FP_FORM_BUCKET_NAME)
+    #     # Upload file to Google Bucket (the "familiar-person-form-data" one)
+    #     blob = bucket.blob(google_bucket_link+recording_three.filename) 
+    #     blob.upload_from_filename(stored_recording_three_file)
 
     # @Ruqhia you can either call your endpoint here (since they're all in Google Bucket)
     # or at the end of the function
@@ -580,8 +580,8 @@ def insert_a_favourite_person(request):
     # remove the 4 created files
     os.remove(os.getcwd() + r"/tmp/" +"photo.jpg")
     os.remove(os.getcwd() + r"/tmp/" +"recording_1.wav")
-    os.remove(os.getcwd() + r"/tmp/" +"recording_2.wav")
-    os.remove(os.getcwd() + r"/tmp/" +"recording_3.wav")
+    # os.remove(os.getcwd() + r"/tmp/" +"recording_2.wav")
+    # os.remove(os.getcwd() + r"/tmp/" +"recording_3.wav")
 
     con = sqlite3.connect(DATABASE)
     cur = con.cursor()
