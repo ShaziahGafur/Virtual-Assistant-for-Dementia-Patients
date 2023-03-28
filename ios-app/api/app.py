@@ -102,7 +102,7 @@ def download_FP_media_dialogue():
     client=storage.Client()
     bucket_name = "familiar-person" 
 
-    finished_videos_folder = "Patients/"+patient_ID+"/Familiar Person/"+FP_ID+"/FinishedVideos/"
+    finished_videos_folder = "Patients/"+patient_ID+"/Familiar Person/"+FP_ID+"/combinedVideos/"
     videos_folder="Patients/"+patient_ID+"/Familiar Person/"+FP_ID+"/Videos/"
     audio_folder="Patients/"+patient_ID+"/Familiar Person/"+FP_ID+"/Audio/"
 
