@@ -111,12 +111,13 @@ dialogues = [
         "How are you doing today?",
         "Do you know where you are?",
         "Do you know what month it is?",
-        "Do you know what year it is?"
+        "Do you know what year it is?",
         "Do you know what season it is?",
         "How many children do you have?",
         "Do you remember the time when you lost your first tooth?",
-        "Do you remember the time when you were going to school?"
+        "Do you remember the time when you were going to school?",
         "Do you have a spouse? What is their name?",
+        "Where do you live?",
         "What are your hobbies?",
         "Are you feeling scared or afraid? Tell me more about how you are feeling",
         "Do you like to read?",
