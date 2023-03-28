@@ -15,6 +15,7 @@ from pydub.playback import play
 # Imports the Google Cloud client library
 from google.cloud import speech
 from google.cloud import storage
+from google.cloud import language_v1
 import glob, os, shutil
 import io
 import random, re
@@ -26,6 +27,7 @@ unused_prompts = []
 answers = {}
 prompts_list = []
 matched_questions = {}
+categories={}
 p_name = 'Mirza'
 fp_name = 'Shaziah'
 hospital = 'North York General Hospital'
@@ -223,6 +225,41 @@ def transcribe_audio(request):
         
     return {"Transcript": transcript}
 
+@app.route('/sentiment_analysis', methods=["POST"])
+def sentiment_analysis(text_input):
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_APPLICATION_CREDENTIALS
+
+    """Run a sentiment analysis request on text within a passed filename."""
+    client = language_v1.LanguageServiceClient()
+
+    document = language_v1.Document(
+        content=text_input, type_=language_v1.Document.Type.PLAIN_TEXT
+    )
+
+    annotations = client.analyze_sentiment(request={"document": document})
+
+    # Print the results
+    score = annotations.document_sentiment.score
+    magnitude = annotations.document_sentiment.magnitude
+
+    most_negative = min([sentence.sentiment.score for sentence in annotations.sentences])
+
+    # Can comment out, just for debugging----
+    for index, sentence in enumerate(annotations.sentences):
+        sentence_sentiment = sentence.sentiment.score
+        print(
+            "Sentence {} has a sentiment score of {}".format(index, sentence_sentiment)
+        )
+
+    print(
+        "Overall Sentiment: score of {} with magnitude of {}".format(score, magnitude)
+    )
+
+    #---------
+
+    return most_negative
+
+
 ### This function takes in a particular patient, FP, and conversation decision
 @app.route('/download_media', methods=["POST"])
 def prepare_video(decision):
@@ -256,7 +293,7 @@ def prepare_video(decision):
     return
 
 def decision_setup():
-    global answers, prompts_list, matched_questions
+    global answers, prompts_list, matched_questions, categories
     greetings = ["Hi!",
              "Hello!",
              "Hey!",
@@ -289,6 +326,22 @@ def decision_setup():
             "Tell me about your friends in school.",
             "Tell me about your children."
             ]
+    
+    categories = {"Time":[# "Do you know what year it is?",
+            "Do you know what month it is?",
+            "Do you know what season it is?"],
+        "Life":[
+            "How many children do you have?",
+            "Do you have a spouse What is their name?",
+            "Tell me about your friends in school.",
+            "Tell me about your children."],
+        "Hobbies":["What are your hobbies?",
+            "Do you like to read?",
+            "Do you like to sew?",
+            "Do you like to exercise?"],
+        "Negative Feelings":["How are you doing today?",
+            "Do you know where you are?",
+            "Are you feeling scared or afraid Tell me more about how you are feeling."]}
 
     matching_questions = {
         ('where', 'where am i'): "where am i",
@@ -328,6 +381,8 @@ def get_response(p_input):
 #   print("answers: ", matched_questions)
 #   print("unused_prompts: ", unused_prompts)
 
+  input_sentiment = sentiment_analysis(p_input)
+
   for phrase in phrases:
     question = find_matching_question(matched_questions, phrase)
     if question in answers:
@@ -336,8 +391,24 @@ def get_response(p_input):
   if not unused_prompts:
       unused_prompts = prompts_list.copy()
 
-  prompt = random.choice(unused_prompts)
-  unused_prompts.remove(prompt)
+  if input_sentiment is None or input_sentiment > -0.5:
+    prompt = random.choice(unused_prompts)
+    unused_prompts.remove(prompt)
+  else:
+    # Fairly negative sentiment
+    feelings_prompts = categories["Negative Feelings"]
+
+    # Try to take the first value that's in unused prompts
+    prompt = None
+    for feelings_prompt in feelings_prompts:
+      if feelings_prompt in unused_prompts:
+        prompt = feelings_prompt
+        unused_prompts.remove(prompt)
+        break
+
+    # If all of the prompts have been used recently
+    if prompt is None:
+      prompt = random.choice(feelings_prompts)
 
   if "You are in {0}.".format(hospital) in response and prompt == "Do you know where you are?":
     # get new prompt so that we don't ask them if they know where they are right after telling them where they are
