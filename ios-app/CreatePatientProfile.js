@@ -7,6 +7,7 @@ import {
   Platform,
   TouchableOpacity,
   Text,
+  Pressable,
   StyleSheet,
   TextInput,
 } from "react-native";
@@ -66,14 +67,10 @@ export default function CreatePatientProfile() {
           onChangeText={setpatientHospitalID}
           value={patientHospitalID}
         />
-        <GooglePlayButton
-          style={styles.buttonStyling}
-          backgroundColor="#06038D"
-          text="Submit"
-          onPress={() => onSubmit()}
-          textColor="#fff"
-          rippleColor="white"
-        />
+        <Pressable style={styles.button}
+        onPress={() => onSubmit()}>
+          <Text style={styles.text}>Submit</Text>
+        </Pressable>
       </View>
     );
   } else {
@@ -82,22 +79,14 @@ export default function CreatePatientProfile() {
         <Text>
           Patient {patientFirstName} {patientLastName} submitted successfully!
         </Text>
-        <GooglePlayButton
-          style={styles.buttonStyling}
-          backgroundColor="#06038D"
-          text="Add Another Patient"
-          onPress={() => setFormSubmitted(false)}
-          textColor="#fff"
-          rippleColor="white"
-        />
-        <GooglePlayButton
-          style={styles.buttonStyling}
-          backgroundColor="#06038D"
-          text="View Favourite People"
-          onPress={() => onSubmit()}
-          textColor="#fff"
-          rippleColor="white"
-        />
+        <Pressable style={styles.button}
+        onPress={() => setFormSubmitted(false)}>
+          <Text style={styles.text}>Add Another Patient</Text>
+        </Pressable>
+        <Pressable style={styles.button}
+        onPress={() => onSubmit()}>
+          <Text style={styles.text}>View Familiar People</Text>
+        </Pressable>
       </View>
     );
   }
@@ -113,8 +102,6 @@ const styles = StyleSheet.create({
   formContainer: {
     flex: 1,
     justifyContent: "center",
-    paddingLeft: "2%",
-    paddingRight: "2%",
   },
   titleText: {
     fontSize: 60,
@@ -133,6 +120,24 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 10,
     borderRadius: 15,
+  },
+  button: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 10,
+    elevation: 3,
+    width:800,
+    margin: 20,
+    backgroundColor: '#06038D',
+  },
+  text: {
+    fontSize: 22,
+    lineHeight: 21,
+    fontWeight: 'bold',
+    letterSpacing: 0.25,
+    color: 'white',
   },
   input: {
     height: 50,
