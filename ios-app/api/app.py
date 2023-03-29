@@ -33,7 +33,9 @@ fp_name = 'Shaziah'
 hospital = 'North York General Hospital'
 
 tz = timezone('EST')
-date_today = datetime.now(tz).strftime("%B %d, %Y")
+weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+weekday = weekdays[datetime.now(tz).weekday()]
+date_today = weekday + ", " + datetime.now(tz).strftime("%B, %d, %Y")
 month = datetime.now(tz).strftime("%B")
 year = datetime.now(tz).strftime("%Y")
 
@@ -407,38 +409,44 @@ def prepare_video(decision):
 
 def decision_setup():
     global answers, prompts_list, matched_questions, categories
-    greetings = ["Hi!",
-             "Hello!",
-             "Hey!",
-             "Hello {0}".format(p_name),
-             "Hi {0}, nice to see you again!".format(p_name)]
+    # greetings = ["Hi!",
+    #          "Hello!",
+    #          "Hey!",
+    #          "Hello {0}".format(p_name),
+    #          "Hi {0}, nice to see you again!".format(p_name)]
 
     answers = {
-        # "who are you" : ["I am {0}.".format(fp_name)],
         "where am i" : ["You are in {0}.".format(hospital)],
         "why am i here" : ["You are in hospital because you are sick."],
-        # "what day is it today" : ["Today is {0}.".format(date_today)],
-        # "what month is it" : ["It is {0}.".format(month)],
-        # "what year is it" : ["It is the year {0}.".format(year)],
-        # "what season is it" : ["It is {0} now.".format(season)],
+        "what day is it today" : ["Today is, {0}.".format(date_today)],
+        "what month is it" : ["It is, {0}.".format(month)],
+        "what year is it" : ["It is the year {0}.".format(year)],
+        "what season is it" : ["It is {0} now.".format(season)]
     }
 
-    prompts_list = ["How are you doing today?",
-            "Do you know where you are?",
-            # "Do you know what year it is?",
-            "Do you know what month it is?",
-            "Do you know what season it is?",
-            "How many children do you have?",
-            "Do you have a spouse What is their name?",
-            # "Where do you live?",
-            "What are your hobbies?",
-            "Are you feeling scared or afraid Tell me more about how you are feeling.",
-            "Do you like to read?",
-            "Do you like to sew?",
-            "Do you like to exercise?",
-            "Tell me about your friends in school.",
-            "Tell me about your children."
-            ]
+    prompts_list = [
+        "Are you feeling scared or afraid Tell me more about how you are feeling.",
+        "Did you know that an ostrichs eye is bigger than its brain?",
+        "Did you know that potato chips were invented by mistake?",
+        "Did you know that the heart of a shrimp is located in its head?",
+        "Do you have a spouse What is their name?",
+        "Do you know what month it is?",
+        "Do you know what season it is?",
+        "Do you know what year it is?",
+        "Do you know where you are?",
+        "Do you like to exercise?",
+        "Do you like to read?",
+        "Do you like to sew?",
+        # "Do you remember the time when you lost your first tooth?",
+        "Do you remember the time when you were going to school?",
+        "How are you doing today?",
+        "How many children do you have?",
+        "Tell me about your children.",
+        "Tell me about your friends in school.",
+        "What are your hobbies?",
+        # "Where do you live?",
+        "You must be feeling very scared right now."
+        ]
     
     categories = {"Time":[# "Do you know what year it is?",
             "Do you know what month it is?",
