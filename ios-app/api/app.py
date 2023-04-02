@@ -4,6 +4,7 @@ from pytz import timezone
 from flask import Flask, request
 from flask_cors import CORS, cross_origin
 from config import *
+import cv2
 
 import io
 from mutagen.mp3 import MP3
@@ -172,6 +173,18 @@ def download_FP_media_dialogue():
                 file_path = destination_dir
                 blob.download_to_filename(file_path + file_name)
 
+        if os.path.isfile(file_path + "bg_video.mp4"):
+            print("Exists!")
+            vidcap = cv2.VideoCapture(file_path + "bg_video.mp4")
+            # get total number of frames
+            # set frame position
+            vidcap.set(cv2.CAP_PROP_POS_FRAMES,0)
+            success, image = vidcap.read()
+            if success:
+                cv2.imwrite(file_path+'fpphoto.jpg', image)
+        else:
+            print("**** WARNING: FPPHOTO.JPG NOT CREATED ****")
+
     print("Videos all downloaded! Starting video call set-up.")
 
     # set up initial greeting
@@ -189,6 +202,9 @@ def transcribe_audio(request):
     files = request.files
     wav_file = files["files"]
     transcript = ""
+
+    # start_time = datetime.now()
+    # print("Starting Transcription Time at: ", start_time)
 
     try:
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_APPLICATION_CREDENTIALS
@@ -219,6 +235,22 @@ def transcribe_audio(request):
         print(response.results)
         for result in response.results:
             transcript += result.alternatives[0].transcript
+
+        # transcript_file = open('transcripts.txt', 'a')
+        # print(transcript + "\n", file = transcript_file)
+        # transcript_file.close()
+
+        # end_time = datetime.now()
+        # print("Ending Transcription Time at: ", end_time)
+        # print("Time Difference: ", end_time - start_time)
+
+        # transcript_file = open('transcripts_time.txt', 'a')
+        # print("Starting Transcription Time at: " + str(start_time), file = transcript_file)
+        # print("Ending Transcription Time at: " + str(end_time), file = transcript_file)
+        # print("Time Difference: " + str(end_time - start_time) + "\n\n", file = transcript_file)
+        # transcript_file.close()
+
+        # print("\n--------------------------------------------------------\n")
             # return {"Transcript": result.alternatives[0].transcript}
     except e:
         print(e)
