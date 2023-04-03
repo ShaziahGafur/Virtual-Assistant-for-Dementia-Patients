@@ -657,8 +657,18 @@ def insert_a_favourite_person(request):
     
     # add the new file to the current combined file in progress
     combined_clips = combined_clips + wav_file
-    combined_audio_out_file = os.getcwd() + r"/voice_clone/Real_Time_Voice_Cloning/audio_clips/output/all_short_prompts.wav"
+    combined_audio_out_file = os.getcwd() + r"/voice_clone/Real_Time_Voice_Cloning/audio_clips/output/short_prompts.wav"
     combined_clips.export(combined_audio_out_file, format="wav")
+
+    ## UPLOAD FILES TO BUCKET
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_APPLICATION_CREDENTIALS
+    client=storage.Client()
+    bucket_name = "familiar-person" 
+    bucket=client.get_bucket(bucket_name)
+    destination = "Patients/"+str(patient_id)+"/Familiar Person/"+str(FP_id)+"/combinedVideos/short_prompts.wav"
+
+    blob = bucket.blob(destination) 
+    blob.upload_from_filename(combined_audio_out_file)
 
     return {"result":"Success"}
 
