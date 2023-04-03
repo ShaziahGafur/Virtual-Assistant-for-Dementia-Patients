@@ -130,7 +130,7 @@ for clip in short_clips[:50]:
     pos = pos + 2.5
     video.write_videofile("voice_clone/Real_Time_Voice_Cloning/audio_clips/output/mp4/"+clip+".mp4")
 
-clip = short_clips[49]
+clip = short_clips[50]
 video = short_clips_video.subclip(pos, pos + 3)
 video.write_videofile("voice_clone/Real_Time_Voice_Cloning/audio_clips/output/mp4"+clip+".mp4")
 
