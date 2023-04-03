@@ -90,49 +90,51 @@ short_clips = [
         "October",
         "November",
         "December",
-        "first",
-        "second",
-        "third",
-        "fourth",
-        "fifth",
-        "sixth",
-        "seventh",
-        "eighth",
-        "ninth",
-        "tenth",
-        "eleventh",
-        "twelfth",
-        "thirteenth",
-        "fourteenth",
-        "fifteenth",
-        "sixteenth",
-        "seventeenth",
-        "eighteenth",
-        "nineteenth",
-        "twentieth",
-        "twenty-first",
-        "twenty-second",
-        "twenty-third",
-        "twenty-fourth",
-        "twenty-fifth",
-        "twenty-sixth",
-        "twenty-seventh",
-        "twenty-eighth",
-        "twenty-ninth",
-        "thirtieth",
-        "thirty-first",
-        "twenty twenty-three"
+        "01",
+        "02",
+        "03",
+        "04",
+        "05",
+        "06",
+        "07",
+        "08",
+        "09",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24",
+        "25",
+        "26",
+        "27",
+        "28",
+        "29",
+        "30",
+        "31",
+        "2023"
     ]
 
 pos = 0
-for clip in short_clips[:50]:
+
+# Create all clips for all files but the last one ("2023.mp4")
+for clip in short_clips[:50]: 
     video = short_clips_video.subclip(pos, pos + 2.5)
     pos = pos + 2.5
     video.write_videofile("voice_clone/Real_Time_Voice_Cloning/audio_clips/output/mp4/"+clip+".mp4")
 
 clip = short_clips[50]
 video = short_clips_video.subclip(pos, pos + 3)
-video.write_videofile("voice_clone/Real_Time_Voice_Cloning/audio_clips/output/mp4"+clip+".mp4")
+video.write_videofile("voice_clone/Real_Time_Voice_Cloning/audio_clips/output/mp4/"+clip+".mp4")
 
 ## UPLOAD FILES TO BUCKET
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_APPLICATION_CREDENTIALS
@@ -149,6 +151,7 @@ destination = "Patients/"+str(patient_ID)+"/Familiar Person/"+str(FP_ID)+"/combi
 for clip in videofiles:
     blob = bucket.blob(destination + clip) 
     blob.upload_from_filename(mp4path + clip)
+    print("Uploaded", clip)
 
 outputpath = os.getcwd() + r"/voice_clone/Real_Time_Voice_Cloning/audio_clips/output/"
 audiofiles = [f for f in listdir(outputpath) if isfile(join(outputpath, f))]
