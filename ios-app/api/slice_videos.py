@@ -121,18 +121,20 @@ short_clips = [
         "29",
         "30",
         "31",
+        "Today is",
+        "It is",
         "2023"
     ]
 
 pos = 0
 
 # Create all clips for all files but the last one ("2023.mp4")
-for clip in short_clips[:50]: 
+for clip in short_clips[:52]: 
     video = short_clips_video.subclip(pos, pos + 2.5)
     pos = pos + 2.5
     video.write_videofile("voice_clone/Real_Time_Voice_Cloning/audio_clips/output/mp4/"+clip+".mp4")
 
-clip = short_clips[50]
+clip = short_clips[52]
 video = short_clips_video.subclip(pos, pos + 3)
 video.write_videofile("voice_clone/Real_Time_Voice_Cloning/audio_clips/output/mp4/"+clip+".mp4")
 

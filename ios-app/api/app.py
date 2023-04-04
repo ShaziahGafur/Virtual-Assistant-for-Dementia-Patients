@@ -615,12 +615,14 @@ def insert_a_favourite_person(request):
         "twenty-ninth",
         "thirtieth",
         "thirty-first",
+        "Today is",
+        "It is",
         "twenty twenty-three"
     ]
     
     combined_clips = None
 
-    for clip in short_clips[:50]: # 7 days of the week + 12 months of the year + 31 numbers = 50 clips
+    for clip in short_clips[:52]: # 7 days of the week + 12 months of the year + 31 numbers + "Today is" + "It is" = 52 clips
         filename = os.getcwd() + r"/voice_clone/Real_Time_Voice_Cloning/audio_clips/output/" + clip + ".wav"
         wav_file = AudioSegment.from_file(file=filename, format="wav")
         duration = len(wav_file)
