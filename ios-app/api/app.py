@@ -29,8 +29,6 @@ answers = {}
 prompts_list = []
 matched_questions = {}
 categories={}
-p_name = 'Mirza'
-fp_name = 'Shaziah'
 hospital = 'North York General Hospital'
 
 tz = timezone('EST')
@@ -441,11 +439,6 @@ def prepare_video(decision):
 
 def decision_setup():
     global answers, prompts_list, matched_questions, categories
-    # greetings = ["Hi!",
-    #          "Hello!",
-    #          "Hey!",
-    #          "Hello {0}".format(p_name),
-    #          "Hi {0}, nice to see you again!".format(p_name)]
 
     answers = {
         "where am i" : ["You are in {0}.".format(hospital)],
@@ -469,14 +462,14 @@ def decision_setup():
         "Do you like to exercise?",
         "Do you like to read?",
         "Do you like to sew?",
-        # "Do you remember the time when you lost your first tooth?",
+        "Do you remember the time when you lost your first tooth?",
         "Do you remember the time when you were going to school?",
         "How are you doing today?",
         "How many children do you have?",
         "Tell me about your children.",
         "Tell me about your friends in school.",
         "What are your hobbies?",
-        # "Where do you live?",
+        "Where do you live?",
         "You must be feeling very scared right now."
         ]
     
@@ -497,11 +490,11 @@ def decision_setup():
             "Are you feeling scared or afraid Tell me more about how you are feeling."]}
 
     matching_questions = {
-        ('where', 'where am i'): "where am i",
-        ('what day', 'what is today', 'what\'s today\'s date', 'what is today\'s date', 'what date is it today', 'which day'): "what day is it today",
-        ('what month', 'which month'): "what month is it",
-        ('what year', 'which year'): "what year is it",
-        ('what season', 'which season'): "what season is it"
+        ('where am i', 'i don\'t know where i am'): "where am i",
+        ('what day is it', 'what is today', 'what\'s today\'s date', 'what is today\'s date', 'what date is it today', 'which day is it'): "what day is it today",
+        ('what month is it', 'which month is it'): "what month is it",
+        ('what year is it', 'which year is it'): "what year is it",
+        ('what season is it', 'which season is it'): "what season is it"
     }
 
     matched_questions = {}
@@ -527,15 +520,7 @@ def get_response(p_input):
   # if it exists, remove question mark at the end of last question to match ones in "answers" list
   phrases[-1] = phrases[-1].replace('?', '')
   response = ""
-#   print("phrases: ", phrases)
-
-#   print("answers: ", answers)
-#   print("prompts_list: ", prompts_list)
-#   print("answers: ", matched_questions)
-#   print("unused_prompts: ", unused_prompts)
-
   num_words = len(p_input.split())
-
   prompt = None
 
   for phrase in phrases:
@@ -604,9 +589,6 @@ def generate_decision():
     transcript = transcribe_audio(request)
     return_value = {"Return":"Failure"}
     print("***TRANSCRIPT: " + transcript["Transcript"] + "\n")
-    # if transcript["Transcript"]:
-    # call the decision functions
-    # change return_value here
     return_value = {"Return": get_response(transcript["Transcript"])}
     print("***CHOSEN RESPONSE:", return_value["Return"])
     return return_value
