@@ -1,22 +1,25 @@
-import argparse
-import os
-from pathlib import Path
 
-import librosa
-import numpy as np
-import soundfile as sf
-import torch
 
-from voice_clone.Real_Time_Voice_Cloning.encoder import inference as encoder
-from voice_clone.Real_Time_Voice_Cloning.encoder.params_model import model_embedding_size as speaker_embedding_size
-from voice_clone.Real_Time_Voice_Cloning.synthesizer.inference import Synthesizer
-from voice_clone.Real_Time_Voice_Cloning.utils.argutils import print_args
-from voice_clone.Real_Time_Voice_Cloning.utils.default_models import ensure_default_models
-from voice_clone.Real_Time_Voice_Cloning.vocoder import inference as vocoder
-
-from pydub import AudioSegment
 
 def text_to_speech_voice_cloner(dialogues):
+
+    from voice_clone.Real_Time_Voice_Cloning.encoder import inference as encoder
+    from voice_clone.Real_Time_Voice_Cloning.encoder.params_model import model_embedding_size as speaker_embedding_size
+    from voice_clone.Real_Time_Voice_Cloning.synthesizer.inference import Synthesizer
+    from voice_clone.Real_Time_Voice_Cloning.utils.argutils import print_args
+    from voice_clone.Real_Time_Voice_Cloning.utils.default_models import ensure_default_models
+    from voice_clone.Real_Time_Voice_Cloning.vocoder import inference as vocoder
+
+    from pydub import AudioSegment
+
+    import argparse
+    import os
+    from pathlib import Path
+
+    import librosa
+    import numpy as np
+    import soundfile as sf
+    import torch
 
     ## Load the models one by one.
     ensure_default_models(Path("voice_clone/Real_Time_Voice_Cloning/saved_models"))

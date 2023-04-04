@@ -665,10 +665,17 @@ def insert_a_favourite_person(request):
     client=storage.Client()
     bucket_name = "familiar-person" 
     bucket=client.get_bucket(bucket_name)
-    destination = "Patients/"+str(patient_id)+"/Familiar Person/"+str(FP_id)+"/combinedVideos/short_prompts.wav"
+    destination = "Patients/"+str(patient_id)+"/Familiar Person/"+str(FP_id)+"/Audio/"
 
-    blob = bucket.blob(destination) 
-    blob.upload_from_filename(combined_audio_out_file)
+    # Get list of files to upload
+    outputpath = os.getcwd() + r"/voice_clone/Real_Time_Voice_Cloning/audio_clips/output/"
+    audiofiles = [f for f in listdir(outputpath) if isfile(join(outputpath, f))]
+
+    # Upload each audio file
+    for clip in audiofiles:
+        blob = bucket.blob(destination + clip) 
+        blob.upload_from_filename(outputpath + clip)
+        print("Uploaded", clip)
 
     return {"result":"Success"}
 
