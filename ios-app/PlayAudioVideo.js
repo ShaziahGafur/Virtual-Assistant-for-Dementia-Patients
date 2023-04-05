@@ -56,7 +56,7 @@ export default function PlayAudioVideo({loadingScreen, videoFinished, setVideoFi
   else{
   return (
     <View style={styles.container}>
-      <ImageBackground source={require("./api/tmp/media_from_bucket/fpphoto.jpg")} resizeMode="contain"  style={styles.backgroundPhoto}>
+      <ImageBackground source={require("./api/tmp/media_from_bucket/fp_videos/fpphoto.jpg")} resizeMode="contain"  style={styles.backgroundPhoto}>
       <Video
         ref={video}
         style={styles.video}
