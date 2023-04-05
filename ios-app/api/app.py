@@ -9,6 +9,7 @@ import cv2
 import io
 from mutagen.mp3 import MP3
 from moviepy.editor import VideoFileClip, AudioFileClip, CompositeAudioClip, concatenate_videoclips
+from PIL import Image
 
 from pydub import AudioSegment
 from pydub.playback import play
@@ -710,6 +711,9 @@ def insert_a_favourite_person(request):
     # also need to check the type of the photo too :')
     stored_photo_file = os.getcwd() + r"/tmp/" + photo.filename + ".jpg"
     photo.save(stored_photo_file)
+
+    img = Image.open(os.getcwd() + r"/tmp/" + photo.filename + ".jpg")
+    img.save(os.getcwd() + r"/tmp/" + photo.filename + ".png")
     
     if photo:
         storage_client = storage.Client()
@@ -756,6 +760,7 @@ def insert_a_favourite_person(request):
 
     # remove the 4 created files
     os.remove(os.getcwd() + r"/tmp/" +"photo.jpg")
+    os.remove(os.getcwd() + r"/tmp/" +"photo.png")
     os.remove(os.getcwd() + r"/tmp/" +"recording_1.wav")
     # os.remove(os.getcwd() + r"/tmp/" +"recording_2.wav")
     # os.remove(os.getcwd() + r"/tmp/" +"recording_3.wav")
