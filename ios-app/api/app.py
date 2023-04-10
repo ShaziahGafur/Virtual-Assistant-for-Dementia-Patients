@@ -414,26 +414,30 @@ def prepare_video(decision):
 
     video_clip_filenames = []
 
-    for prompt in prompts:
-        print("prompt: ", prompt)
-        prompt = prompt.replace('?', '')
-        prompt = prompt.replace('.', '')
+    try:
+        for prompt in prompts:
+            print("prompt: ", prompt)
+            prompt = prompt.replace('?', '')
+            prompt = prompt.replace('.', '')
 
-        if len(prompts) == 1:
-            shutil.copy(videos_dir+prompt+".mp4", destination_dir)
-            os.rename(destination_dir+prompt+".mp4", destination_dir+"new_video_clip.mp4")
-            return
+            if len(prompts) == 1:
+                shutil.copy(videos_dir+prompt+".mp4", destination_dir)
+                os.rename(destination_dir+prompt+".mp4", destination_dir+"new_video_clip.mp4")
+                return
 
-        video_clip_filenames.append(videos_dir+prompt+".mp4")
+            video_clip_filenames.append(videos_dir+prompt+".mp4")
 
-    clips = [VideoFileClip(c) for c in video_clip_filenames]
-        
-    final_video = concatenate_videoclips(clips)
-    final_video.write_videofile("tmp/media_from_bucket/new_video_clip.mp4",
-                                codec='libx264',
-                                audio_codec='aac',
-                                temp_audiofile='temp-audio.m4a',
-                                remove_temp=True)
+        clips = [VideoFileClip(c) for c in video_clip_filenames]
+
+        final_video = concatenate_videoclips(clips)
+        final_video.write_videofile("tmp/media_from_bucket/new_video_clip.mp4",
+                                    codec='libx264',
+                                    audio_codec='aac',
+                                    temp_audiofile='temp-audio.m4a',
+                                    remove_temp=True)
+    except Exception as e:
+        print("An exception occurred in prepare_video")
+        print(e)
 
     return
 
@@ -457,20 +461,20 @@ def decision_setup():
         "Do you have a spouse What is their name?",
         "Do you know what month it is?",
         "Do you know what season it is?",
-        "Do you know what year it is?",
+        # "Do you know what year it is?",
         "Do you know where you are?",
         "Do you like to exercise?",
         "Do you like to read?",
         "Do you like to sew?",
-        "Do you remember the time when you lost your first tooth?",
-        "Do you remember the time when you were going to school?",
+        # "Do you remember the time when you lost your first tooth?",
+        # "Do you remember the time when you were going to school?",
         "How are you doing today?",
         "How many children do you have?",
         "Tell me about your children.",
-        "Tell me about your friends in school.",
+        # "Tell me about your friends in school.",
         "What are your hobbies?",
-        "Where do you live?",
-        "You must be feeling very scared right now."
+        # "Where do you live?",
+        # "You must be feeling very scared right now."
         ]
     
     categories = {"Time":["Do you know what year it is?",
@@ -611,6 +615,19 @@ def generate_decision():
     return_value = {"Return": get_response(transcript["Transcript"])}
     print("***CHOSEN RESPONSE:", return_value["Return"])
     return return_value
+
+@app.route('/end_call', methods=["GET"])
+def end_call():
+    # clean up video files on server side
+    # other option is to store downloaded videos in different folders depending on patientID & fpID
+    videos_dir = "tmp/media_from_bucket/fp_videos/"
+    for file in os.listdir(videos_dir):
+        if file != "bg_video.mp4" and file != "fpphoto.jpg":
+            complete_file_name = os.path.join(videos_dir, file)
+            os.remove(complete_file_name)
+
+    print("deleted downloaded videos")
+    return {"Result": "Success"}
 
 # (TODO) Database stuff below -- put this in another file later
 from flask import render_template
