@@ -67,7 +67,7 @@ let recordingTwo = new Audio.Recording();
 let recordingThree = new Audio.Recording();
 
 
-export default function CreateProfile() {
+export default function CreateProfile({navigation}) {
   const [image, setImage] = useState(null);
   const [patients, setPatients] = useState([]);
 
@@ -517,6 +517,10 @@ export default function CreateProfile() {
     return (
       <View style={styles.formContainer}>
         <Text style={{fontSize: 25, color: "#AAAAAA", fontStyle: "italic",textAlign:"center"}}>FP {firstNameFP} {lastNameFP} profile submitted!</Text>
+        <Pressable style={styles.button}
+          onPress={() => navigation.navigate("Home")}>
+            <Text style={styles.buttonText}>Go home</Text>
+          </Pressable>
       </View>
     );
   }
@@ -591,6 +595,13 @@ const styles = StyleSheet.create({
     height: 750,
     width: 600,
     resizeMode: "contain",
+  },
+  buttonText: {
+    fontSize: 22,
+    lineHeight: 21,
+    fontWeight: 'bold',
+    letterSpacing: 0.25,
+    color: 'white',
   },
   buttonStyling: {
     marginTop: 20,

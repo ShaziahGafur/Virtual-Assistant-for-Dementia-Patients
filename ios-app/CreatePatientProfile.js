@@ -17,7 +17,7 @@ import { REACT_APP_BACKEND_API } from "@env"
 import axios from "axios";
 console.log(REACT_APP_BACKEND_API);
 
-export default function CreatePatientProfile() {
+export default function CreatePatientProfile({navigation}) {
   const [patientFirstName, setPatientFirstName] = React.useState(null);
   const [formSubmitted, setFormSubmitted] = React.useState(false);
   const [patientLastName, setPatientLastName] = React.useState(null);
@@ -80,13 +80,9 @@ export default function CreatePatientProfile() {
           Patient {patientFirstName} {patientLastName} submitted successfully!
         </Text>
         <Pressable style={styles.button}
-        onPress={() => setFormSubmitted(false)}>
-          <Text style={styles.text}>Add Another Patient</Text>
-        </Pressable>
-        <Pressable style={styles.button}
-        onPress={() => onSubmit()}>
-          <Text style={styles.text}>View Familiar People</Text>
-        </Pressable>
+          onPress={() => navigation.navigate("Home")}>
+            <Text style={styles.buttonText}>Go home</Text>
+          </Pressable>
       </View>
     );
   }
@@ -148,5 +144,12 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 15,
     backgroundColor: "white",
+  },
+  buttonText: {
+    fontSize: 22,
+    lineHeight: 21,
+    fontWeight: 'bold',
+    letterSpacing: 0.25,
+    color: 'white',
   },
 });
