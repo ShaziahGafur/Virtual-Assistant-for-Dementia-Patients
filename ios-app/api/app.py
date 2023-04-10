@@ -461,20 +461,20 @@ def decision_setup():
         "Do you have a spouse What is their name?",
         "Do you know what month it is?",
         "Do you know what season it is?",
-        "Do you know what year it is?",
+        # "Do you know what year it is?",
         "Do you know where you are?",
         "Do you like to exercise?",
         "Do you like to read?",
         "Do you like to sew?",
-        "Do you remember the time when you lost your first tooth?",
-        "Do you remember the time when you were going to school?",
+        # "Do you remember the time when you lost your first tooth?",
+        # "Do you remember the time when you were going to school?",
         "How are you doing today?",
         "How many children do you have?",
         "Tell me about your children.",
-        "Tell me about your friends in school.",
+        # "Tell me about your friends in school.",
         "What are your hobbies?",
-        "Where do you live?",
-        "You must be feeling very scared right now."
+        # "Where do you live?",
+        # "You must be feeling very scared right now."
         ]
     
     categories = {"Time":[# "Do you know what year it is?",
