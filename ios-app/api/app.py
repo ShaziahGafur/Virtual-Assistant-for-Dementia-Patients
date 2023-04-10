@@ -649,6 +649,21 @@ def get_all_patients():
     res = cur.execute("SELECT * FROM Patients")
 
     result = clean_sql_output(res)
+    con.commit()
+    con.close()
+
+    return result
+
+def get_patient_by_patientID(patientID):
+    # (TODO) find a way to make the first two lines able to be taken out, it'll throw a wrong thread error otherwise
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+
+    res = cur.execute("SELECT * FROM Patients where PatientID = ?", patientID)
+
+    result = clean_sql_output(res)
+    con.commit()
+    con.close()
 
     return result
 
@@ -670,20 +685,67 @@ def insert_a_patient(request):
     con.commit()
     return {"result":"Success"}
 
+# (TODO) Add error checking
+def edit_a_patient(request):
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+    print(request)
+    patient_info = request.get_json()
+
+    patient_ID = patient_info["patientID"]
+    first_name = patient_info["firstName"]
+    last_name = patient_info["lastName"]
+    if patient_info["hospitalID"]:
+        hospital_ID = patient_info["hospitalID"]
+        res = cur.execute("UPDATE Patients SET FirstName = ?, LastName= ?, HospitalPatientID = ? where PatientID = ?", (first_name, last_name, hospital_ID, patient_ID))
+    else:
+        res = cur.execute("UPDATE Patients SET FirstName = ?, LastName= ? where PatientID = ?", (first_name, last_name, patient_ID))
+    con.commit()
+    return {"result":"Success"}
+
+# (TODO) Add error checking
+def delete_a_patient(request):
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+    patient_info = request.get_json()
+    patient_ID = patient_info["patientID"]
+    res = cur.execute("DELETE from Patients where PatientID = ?", (patient_ID,))
+    con.commit()
+    return {"result":"Success"}
+
 # (TODO) Need to add delete and modify but later 
-@app.route("/db/patients", methods=["GET","POST"])
+@app.route("/db/patients", methods=["GET","POST", "PUT", "DELETE"])
 def patients():
     if request.method == "GET":
-        return get_all_patients()
+        patientID = request.args.get("patientID")
+        if patientID:
+            return get_patient_by_patientID(patientID)
+        else:
+            return get_all_patients()
     elif request.method == "POST":
-        print("post!")
         return insert_a_patient(request)
+    elif request.method == "PUT":
+        print("put for patient!")
+        return edit_a_patient(request)
+    elif request.method == "DELETE":
+        print("delete for patient!")
+        return delete_a_patient(request)
 
 def get_all_favourite_persons():
     con = sqlite3.connect(DATABASE)
     cur = con.cursor()
 
     res = cur.execute("SELECT * FROM FavouritePersons")
+
+    result = clean_sql_output(res)
+   
+    return result
+
+def get_favourite_persons_by_FP_ID(FP_ID):
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+
+    res = cur.execute("SELECT * FROM FavouritePersons where FavouritePersonsID=?", (FP_ID,))
 
     result = clean_sql_output(res)
    
@@ -813,15 +875,46 @@ def insert_a_favourite_person(request):
     con.commit()
     return {"result":"Success"}
 
-@app.route("/db/favouritepersons", methods=["GET","POST"])
+# (TODO) Add error checking
+def edit_a_FP(request):
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+    patient_info = request.get_json()
+
+    FP_ID = patient_info["favouritePersonsID"]
+    first_name = patient_info["firstName"]
+    last_name = patient_info["lastName"]
+    res = cur.execute("UPDATE FavouritePersons SET FirstName = ?, LastName= ? where FavouritePersonsID = ?", (first_name, last_name, FP_ID))
+    con.commit()
+    return {"result":"Success"}
+
+# (TODO) Add error checking
+def delete_a_FP(request):
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+    patient_info = request.get_json()
+
+    FP_ID = patient_info["favouritePersonsID"]
+    res = cur.execute("DELETE from FavouritePersons where FavouritePersonsID = ?", (FP_ID,))
+    con.commit()
+    return {"result":"Success"}
+
+@app.route("/db/favouritepersons", methods=["GET","POST", "PUT", "DELETE"])
 def favourite_persons():
     if request.method == "GET":
         patientID = request.args.get("patientID")
+        favouritePersonsID = request.args.get("favouritePersonsID")
         if patientID:
             return get_favourite_persons_for_patient(patientID)
+        elif favouritePersonsID:
+            return get_favourite_persons_by_FP_ID(favouritePersonsID)
         else:
             return get_all_favourite_persons()
     elif request.method == "POST":
         return insert_a_favourite_person(request)
+    elif request.method == "PUT":
+        return edit_a_FP(request)
+    elif request.method == "DELETE":
+        return delete_a_FP(request)
 
 
