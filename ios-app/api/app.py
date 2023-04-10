@@ -9,6 +9,7 @@ import cv2
 import io
 from mutagen.mp3 import MP3
 from moviepy.editor import VideoFileClip, AudioFileClip, CompositeAudioClip, concatenate_videoclips
+from PIL import Image
 
 from pydub import AudioSegment
 from pydub.playback import play
@@ -347,18 +348,17 @@ def content_classification(text_input):
 def naive_content_classification(text_input):
     #categories_list = list(categories.keys())
     categories_list = ["Time", "Life", "Hobbies", "Negative Feelings"]
-    # Don't use negative feelings rn since the sentiment analysis is better
 
-    time_keywords = ["month", "time", "year", "day", "season"]
+    # time_keywords = ["month", "time", "year", "day", "season"]
     life_keywords = ["children", "spouse", "partner", "husband", "wife", "school", "child", 
     "friends", "friend", "sibling", "siblings", "brother","brothers", "sister", "sisters",
     "mother", "mom", "father", "dad", "grandchild", "grandchildren", "granddaughter", "grandson"]
     hobbies_keywords = ["hobby", "hobbies", "read", "reading", "sew", "sewing", "bingo", "games", "card games", "books",
         "crochet", "knit"]
 
-    for keyword in time_keywords:
-        if keyword in text_input:
-            return "Time"
+    # for keyword in time_keywords:
+    #     if keyword in text_input:
+    #         return "Time"
 
     for keyword in life_keywords:
         if keyword in text_input:
@@ -477,7 +477,7 @@ def decision_setup():
         # "You must be feeling very scared right now."
         ]
     
-    categories = {"Time":[# "Do you know what year it is?",
+    categories = {"Time":["Do you know what year it is?",
             "Do you know what month it is?",
             "Do you know what season it is?"],
         "Life":[
@@ -489,9 +489,12 @@ def decision_setup():
             "Do you like to read?",
             "Do you like to sew?",
             "Do you like to exercise?"],
-        "Negative Feelings":["How are you doing today?",
-            "Do you know where you are?",
-            "Are you feeling scared or afraid Tell me more about how you are feeling."]}
+        "Negative Feelings":[
+            "Are you feeling scared or afraid Tell me more about how you are feeling.",
+            "You must be feeling very scared right now."],
+        "Facts":["Did you know that an ostrichs eye is bigger than its brain?",
+        "Did you know that potato chips were invented by mistake?",
+        "Did you know that the heart of a shrimp is located in its head?"]}
 
     matching_questions = {
         ('where am i', 'i don\'t know where i am'): "where am i",
@@ -547,7 +550,7 @@ def get_response(p_input):
     else:
         content_class = content_classification(p_input)
 
-    if input_sentiment is None or input_sentiment > -0.5:
+    if input_sentiment is None or input_sentiment > -0.55:
         if content_class is None:
             prompt = random.choice(unused_prompts)
             unused_prompts.remove(prompt)
@@ -571,13 +574,29 @@ def get_response(p_input):
                 unused_prompts.remove(prompt)
                 break
 
-  # If all of the prompts have been used recently
-  if prompt is None:
-    prompt = random.choice(unused_prompts)
+        if prompt is None:
+            prompt = random.choice(feelings_prompts)        
+    
+  if "You are in {0}.".format(hospital) in response or "You are in hospital because you are sick." in response:
+    # get new prompt so that we don't ask them if they know where they are right after telling them where they are
+    no_facts_prompts = []
+    for prompt in unused_prompts:
+        if prompt not in categories["Facts"] and prompt != "Do you know where you are?":
+            no_facts_prompts.append(prompt)
+    prompt = random.choice(no_facts_prompts)
     unused_prompts.remove(prompt)
 
-  if "You are in {0}.".format(hospital) in response and prompt == "Do you know where you are?":
+  if "Today is, {0}.".format(date_today) in response:
     # get new prompt so that we don't ask them if they know where they are right after telling them where they are
+    no_facts_prompts = []
+    for prompt in unused_prompts:
+        if prompt not in categories["Time"]:
+            no_facts_prompts.append(prompt)
+    prompt = random.choice(no_facts_prompts)
+    unused_prompts.remove(prompt)
+
+  # If all of the prompts have been used recently
+  if prompt is None:
     prompt = random.choice(unused_prompts)
     unused_prompts.remove(prompt)
 
@@ -709,6 +728,9 @@ def insert_a_favourite_person(request):
     # also need to check the type of the photo too :')
     stored_photo_file = os.getcwd() + r"/tmp/" + photo.filename + ".jpg"
     photo.save(stored_photo_file)
+
+    img = Image.open(os.getcwd() + r"/tmp/" + photo.filename + ".jpg")
+    img.save(os.getcwd() + r"/tmp/" + photo.filename + ".png")
     
     if photo:
         storage_client = storage.Client()
@@ -755,6 +777,7 @@ def insert_a_favourite_person(request):
 
     # remove the 4 created files
     os.remove(os.getcwd() + r"/tmp/" +"photo.jpg")
+    os.remove(os.getcwd() + r"/tmp/" +"photo.png")
     os.remove(os.getcwd() + r"/tmp/" +"recording_1.wav")
     # os.remove(os.getcwd() + r"/tmp/" +"recording_2.wav")
     # os.remove(os.getcwd() + r"/tmp/" +"recording_3.wav")
