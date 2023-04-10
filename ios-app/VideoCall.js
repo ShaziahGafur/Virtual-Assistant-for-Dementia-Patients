@@ -35,8 +35,8 @@ const recordingOptions = {
 };
 
 // pass these in later on
-const patient_ID = 1;
-const FP_ID = 1;
+// const patient_ID = 1;
+// const FP_ID = 1;
 
 const RECORDING_STOP_SECONDS = 2 * 1000 / 500; // 5 seconds
 const RECORDING_STOP_DB = -27; // if its less than -20, keep going
@@ -49,7 +49,7 @@ export default function Dialogue({ route, navigation }) {
 
   const isFocused = useIsFocused();
 
-  // const { patient_ID, FP_ID } = route.params;
+  const { patient_ID, FP_ID } = route.params;
 
   //   const [recording, setRecording] = React.useState();
   const [transcript, setTranscript] = React.useState("");
@@ -185,6 +185,16 @@ export default function Dialogue({ route, navigation }) {
     //   await stopRecording();
     // }
     // recording = new Audio.Recording();
+    const header = {
+      headers: { "Content-Type": "application/json" },
+    };
+    const response = await axios.get(
+      REACT_APP_BACKEND_API + "/end_call",
+      {
+        headers: header,
+        method: "GET",
+      }
+    );
     navigation.navigate("Home");
   }
 
