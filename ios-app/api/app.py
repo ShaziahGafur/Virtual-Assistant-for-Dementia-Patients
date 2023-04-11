@@ -1,5 +1,5 @@
 import time
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pytz import timezone
 from flask import Flask, request
 from flask_cors import CORS, cross_origin
@@ -34,20 +34,6 @@ hospital = 'North York General Hospital'
 
 tz = timezone('EST')
 weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-weekday = weekdays[datetime.now(tz).weekday()]
-date_today = weekday + ", " + datetime.now(tz).strftime("%B, %d, %Y")
-month = datetime.now(tz).strftime("%B")
-year = datetime.now(tz).strftime("%Y")
-
-# code to get season from: https://stackoverflow.com/a/28688724
-year_int = datetime.now(tz).year
-seasons = [('winter', (date(year_int,  1,  1),  date(year_int,  3, 20))),
-           ('spring', (date(year_int,  3, 21),  date(year_int,  6, 20))),
-           ('summer', (date(year_int,  6, 21),  date(year_int,  9, 22))),
-           ('fall', (date(year_int,  9, 23),  date(year_int, 12, 20))),
-           ('winter', (date(year_int, 12, 21),  date(year_int, 12, 31)))]
-season = next(season for season, (start, end) in seasons
-                if start <= datetime.today().date() <= end)
 
 @app.route('/time')
 @cross_origin()
@@ -186,6 +172,15 @@ def download_FP_media_dialogue():
         else:
             print("**** WARNING: FPPHOTO.JPG NOT CREATED ****")
 
+        # generate date videos for today and tomorrow so playback during call is faster
+        # tomorrow video is needed if call continues past midnight
+
+        video_clip_filenames_today, filename_today = get_date_video_parts_list(datetime.now(tz))
+        video_clip_filenames_tomorrow, filename_tomorrow = get_date_video_parts_list(datetime.now(tz) + timedelta(1))
+
+        write_concatenated_video(video_clip_filenames_today, filename_today)
+        write_concatenated_video(video_clip_filenames_tomorrow, filename_tomorrow)
+
     print("Videos all downloaded! Starting video call set-up.")
 
     # set up initial greeting
@@ -197,6 +192,18 @@ def download_FP_media_dialogue():
     unused_prompts.remove("How are you doing today?")
 
     return {"Result": "Success"}
+
+# returns list of clip filenames for date video concatenation and the resulting filename
+def get_date_video_parts_list(day):
+    day_parts = ["Today is", weekdays[day.weekday()], str(day.strftime("%B")), str(day.day), str(day.year)]
+    video_clip_filenames_day = []
+
+    for part in day_parts:
+        video_clip_filenames_day.append("tmp/media_from_bucket/fp_videos/"+part+".mp4")
+
+    filename_day = "tmp/media_from_bucket/fp_videos/Today is " + weekdays[day.weekday()] + " " + str(day.strftime("%B")) + " " + str(day.day) + " " + str(day.year) + ".mp4"
+
+    return video_clip_filenames_day, filename_day
 
 @app.route('/transcribe_audio', methods=["POST"])
 def transcribe_audio(request):
@@ -427,14 +434,8 @@ def prepare_video(decision):
 
             video_clip_filenames.append(videos_dir+prompt+".mp4")
 
-        clips = [VideoFileClip(c) for c in video_clip_filenames]
+        write_concatenated_video(video_clip_filenames, "tmp/media_from_bucket/new_video_clip.mp4")
 
-        final_video = concatenate_videoclips(clips)
-        final_video.write_videofile("tmp/media_from_bucket/new_video_clip.mp4",
-                                    codec='libx264',
-                                    audio_codec='aac',
-                                    temp_audiofile='temp-audio.m4a',
-                                    remove_temp=True)
     except Exception as e:
         print("An exception occurred in prepare_video")
         print(e)
@@ -447,10 +448,10 @@ def decision_setup():
     answers = {
         "where am i" : ["You are in {0}.".format(hospital)],
         "why am i here" : ["You are in hospital because you are sick."],
-        "what day is it today" : ["Today is, {0}.".format(date_today)],
-        "what month is it" : ["It is, {0}.".format(month)],
-        "what year is it" : ["It is the year {0}.".format(year)],
-        "what season is it" : ["It is {0} now.".format(season)]
+        "what day is it today" : ["date"],
+        "what month is it" : ["month"],
+        "what year is it" : ["year"],
+        "what season is it" : ["season"]
     }
 
     prompts_list = [
@@ -461,20 +462,20 @@ def decision_setup():
         "Do you have a spouse What is their name?",
         "Do you know what month it is?",
         "Do you know what season it is?",
-        # "Do you know what year it is?",
+        "Do you know what year it is?",
         "Do you know where you are?",
         "Do you like to exercise?",
         "Do you like to read?",
         "Do you like to sew?",
-        # "Do you remember the time when you lost your first tooth?",
-        # "Do you remember the time when you were going to school?",
+        "Do you remember the time when you lost your first tooth?",
+        "Do you remember the time when you were going to school?",
         "How are you doing today?",
         "How many children do you have?",
         "Tell me about your children.",
-        # "Tell me about your friends in school.",
+        "Tell me about your friends in school.",
         "What are your hobbies?",
-        # "Where do you live?",
-        # "You must be feeling very scared right now."
+        "Where do you live?",
+        "You must be feeling very scared right now."
         ]
     
     categories = {"Time":["Do you know what year it is?",
@@ -511,6 +512,17 @@ def decision_setup():
     
     return
 
+# concatenates videos in clip_filenames_list and writes the concatenated video to final_video_fpath
+def write_concatenated_video(clip_filenames_list, final_video_fpath):
+    clips = [VideoFileClip(c) for c in clip_filenames_list]
+
+    final_video = concatenate_videoclips(clips)
+    final_video.write_videofile(final_video_fpath,
+                                codec='libx264',
+                                audio_codec='aac',
+                                temp_audiofile='temp-audio.m4a',
+                                remove_temp=True)
+
 def find_matching_question(matched_questions, phrase):
   question = phrase
   
@@ -519,6 +531,19 @@ def find_matching_question(matched_questions, phrase):
       question = matched_questions[substring]
   
   return question
+
+def get_season(today):
+    # code to get season from: https://stackoverflow.com/a/28688724
+    year_int = today.year
+    seasons = [('winter', (date(year_int,  1,  1),  date(year_int,  3, 20))),
+            ('spring', (date(year_int,  3, 21),  date(year_int,  6, 20))),
+            ('summer', (date(year_int,  6, 21),  date(year_int,  9, 22))),
+            ('fall', (date(year_int,  9, 23),  date(year_int, 12, 20))),
+            ('winter', (date(year_int, 12, 21),  date(year_int, 12, 31)))]
+    season = next(season for season, (start, end) in seasons
+                  if start <= today.date() <= end)
+
+    return season
 
 def get_response(p_input):
   global unused_prompts
@@ -529,11 +554,29 @@ def get_response(p_input):
   response = ""
   num_words = len(p_input.split())
   prompt = None
+  avoid_time_prompts = False
 
   for phrase in phrases:
     question = find_matching_question(matched_questions, phrase)
     if question in answers:
-      response = response + random.choice(answers[question]) + " "
+      answer = random.choice(answers[question])
+
+      # check for time-based answers
+      if answer == "date":
+        weekday = weekdays[datetime.now(tz).weekday()]
+        date_today = weekday + " " + datetime.now(tz).strftime("%B %d %Y")
+        answer = "Today is {}.".format(date_today)
+        avoid_time_prompts = True
+      elif answer == "month":
+        month = datetime.now(tz).strftime("%B")
+        answer = "It is, {0}.".format(month)
+      elif answer == "year":
+        year = datetime.now(tz).year
+        answer = "It is the year {0}.".format(year)
+      elif answer == "season":
+        answer = "It is {0} now.".format(get_season(datetime.now(tz)))
+
+      response = response + answer + " "
   
   if not unused_prompts:
       unused_prompts = prompts_list.copy()
@@ -545,10 +588,10 @@ def get_response(p_input):
     input_sentiment = sentiment_analysis(p_input)
 
     # Can't use Google's if the number of words is less than 20
-    if num_words <= 20:
-        content_class = naive_content_classification(p_input)
-    else:
-        content_class = content_classification(p_input)
+    # if num_words <= 20:
+    #     content_class = naive_content_classification(p_input)
+    # else:
+    content_class = content_classification(p_input)
 
     if input_sentiment is None or input_sentiment > -0.55:
         if content_class is None:
@@ -578,7 +621,6 @@ def get_response(p_input):
             prompt = random.choice(feelings_prompts)        
     
   if "You are in {0}.".format(hospital) in response or "You are in hospital because you are sick." in response:
-    # get new prompt so that we don't ask them if they know where they are right after telling them where they are
     no_facts_prompts = []
     for prompt in unused_prompts:
         if prompt not in categories["Facts"] and prompt != "Do you know where you are?":
@@ -586,13 +628,12 @@ def get_response(p_input):
     prompt = random.choice(no_facts_prompts)
     unused_prompts.remove(prompt)
 
-  if "Today is, {0}.".format(date_today) in response:
-    # get new prompt so that we don't ask them if they know where they are right after telling them where they are
-    no_facts_prompts = []
+  if avoid_time_prompts:
+    no_time_prompts = []
     for prompt in unused_prompts:
         if prompt not in categories["Time"]:
-            no_facts_prompts.append(prompt)
-    prompt = random.choice(no_facts_prompts)
+            no_time_prompts.append(prompt)
+    prompt = random.choice(no_time_prompts)
     unused_prompts.remove(prompt)
 
   # If all of the prompts have been used recently
