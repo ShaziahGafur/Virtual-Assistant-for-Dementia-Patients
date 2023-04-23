@@ -18,7 +18,7 @@ export default function PlayAudioVideo({loadingScreen, videoFinished, setVideoFi
   if(!mounted && bg_video.current){
     // Code for componentWillMount here
     // This code is called only one time before intial render
-    bg_video.current.loadAsync(require("./assets/bg_video.mp4"));
+    bg_video.current.loadAsync(require("./api/tmp/media_from_bucket/fp_videos/bg_video.mp4"));
     bg_video.current.setIsMutedAsync(true); // should change to false later
     bg_video.current.setIsLoopingAsync(true);
     bg_video.current.setPositionAsync(0);
@@ -56,7 +56,7 @@ export default function PlayAudioVideo({loadingScreen, videoFinished, setVideoFi
   else{
   return (
     <View style={styles.container}>
-      <ImageBackground source={require("./api/tmp/media_from_bucket/fpphoto.jpg")} resizeMode="contain"  style={styles.backgroundPhoto}>
+      <ImageBackground source={require("./api/tmp/media_from_bucket/fp_videos/fpphoto.jpg")} resizeMode="contain"  style={styles.backgroundPhoto}>
       <Video
         ref={video}
         style={styles.video}
@@ -69,7 +69,7 @@ export default function PlayAudioVideo({loadingScreen, videoFinished, setVideoFi
       <Video
         ref={bg_video}
         style={[styles.video, videoFinished == true ? styles.notHidden : styles.hidden]}
-        source={require("./assets/bg_video.mp4")}
+        source={require("./api/tmp/media_from_bucket/fp_videos/bg_video.mp4")}
         resizeMode="contain"
         onLoad={() => {bg_video.current.setPositionAsync(0); bg_video.current.setIsMutedAsync(true); bg_video.current.setIsLoopingAsync(true); bg_video.current.playAsync()}}
         // set isMuted onLoad otherwise it randomly unmutes

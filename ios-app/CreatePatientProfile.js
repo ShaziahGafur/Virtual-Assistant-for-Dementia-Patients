@@ -7,6 +7,7 @@ import {
   Platform,
   TouchableOpacity,
   Text,
+  Pressable,
   StyleSheet,
   TextInput,
 } from "react-native";
@@ -16,7 +17,7 @@ import { REACT_APP_BACKEND_API } from "@env"
 import axios from "axios";
 console.log(REACT_APP_BACKEND_API);
 
-export default function CreatePatientProfile() {
+export default function CreatePatientProfile({navigation}) {
   const [patientFirstName, setPatientFirstName] = React.useState(null);
   const [formSubmitted, setFormSubmitted] = React.useState(false);
   const [patientLastName, setPatientLastName] = React.useState(null);
@@ -66,14 +67,10 @@ export default function CreatePatientProfile() {
           onChangeText={setpatientHospitalID}
           value={patientHospitalID}
         />
-        <GooglePlayButton
-          style={styles.buttonStyling}
-          backgroundColor="#06038D"
-          text="Submit"
-          onPress={() => onSubmit()}
-          textColor="#fff"
-          rippleColor="white"
-        />
+        <Pressable style={styles.button}
+        onPress={() => onSubmit()}>
+          <Text style={styles.text}>Submit</Text>
+        </Pressable>
       </View>
     );
   } else {
@@ -82,22 +79,10 @@ export default function CreatePatientProfile() {
         <Text>
           Patient {patientFirstName} {patientLastName} submitted successfully!
         </Text>
-        <GooglePlayButton
-          style={styles.buttonStyling}
-          backgroundColor="#06038D"
-          text="Add Another Patient"
-          onPress={() => setFormSubmitted(false)}
-          textColor="#fff"
-          rippleColor="white"
-        />
-        <GooglePlayButton
-          style={styles.buttonStyling}
-          backgroundColor="#06038D"
-          text="View Favourite People"
-          onPress={() => onSubmit()}
-          textColor="#fff"
-          rippleColor="white"
-        />
+        <Pressable style={styles.button}
+          onPress={() => navigation.navigate("Home")}>
+            <Text style={styles.buttonText}>Go home</Text>
+          </Pressable>
       </View>
     );
   }
@@ -113,8 +98,7 @@ const styles = StyleSheet.create({
   formContainer: {
     flex: 1,
     justifyContent: "center",
-    paddingLeft: "2%",
-    paddingRight: "2%",
+    paddingHorizontal:"2%"
   },
   titleText: {
     fontSize: 60,
@@ -134,6 +118,24 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 15,
   },
+  button: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 10,
+    elevation: 3,
+    width:800,
+    marginVertical: 20,
+    backgroundColor: '#06038D',
+  },
+  text: {
+    fontSize: 22,
+    lineHeight: 21,
+    fontWeight: 'bold',
+    letterSpacing: 0.25,
+    color: 'white',
+  },
   input: {
     height: 50,
     marginTop: 12,
@@ -142,5 +144,12 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 15,
     backgroundColor: "white",
+  },
+  buttonText: {
+    fontSize: 22,
+    lineHeight: 21,
+    fontWeight: 'bold',
+    letterSpacing: 0.25,
+    color: 'white',
   },
 });

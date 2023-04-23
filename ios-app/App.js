@@ -11,6 +11,8 @@ import PatientSelect from "./PatientSelect";
 import VideoCall from "./VideoCall";
 import FPSelect from "./FPSelect";
 import Dialogue from "./Dialogue";
+import EditFPProfile from "./EditFPProfile";
+import EditPatientProfile from "./EditPatientProfile";
 import Apis from "./Apis";
 
 const Stack = createNativeStackNavigator();
@@ -41,6 +43,14 @@ const App = () => {
           name="Create A Familiar Person Profile"
           component={CreateProfile}
         />
+        <Stack.Screen
+          name="Edit A Familiar Person Profile"
+          component={EditFPProfile}
+        />
+        <Stack.Screen
+          name="Edit A Patient Profile"
+          component={EditPatientProfile}
+        />
         <Stack.Screen name="Dialogue" component={Dialogue} options={{title: "Video Call"}} />
         <Stack.Screen name="Video Call" component={VideoCall} options={{title: "Video Call"}} />
         <Stack.Screen name="FP Select" component={FPSelect} />
@@ -58,31 +68,10 @@ function HomeScreen({ navigation }) {
         style={styles.hospitalPng}
         source={require("./assets/hospital.png")}
       ></Image>
-      {/* <Apis></Apis> */}
-      {/* <GooglePlayButton
-        onPress={() => navigation.navigate("Record Sound")}
-        backgroundColor="#06038D"
-        text="Record Sound"
-        textColor="#fff"
-        rippleColor="white"
-      /> */}
-      {/* <GooglePlayButton
-        onPress={() => navigation.navigate("Video Call")}
-        backgroundColor="#06038D"
-        style={styles.buttonStyling}
-        text="Start Video Call"
-        textColor="#fff"
-        rippleColor="white"
-      /> */}
-      {/* <GooglePlayButton
-      onPress={() => navigation.navigate("Dialogue")}
-      backgroundColor="#06038D"
-      style={styles.buttonStyling}
-
-      text="Dialogue"
-      textColor="#fff"
-      rippleColor="white"
-    /> */}
+    <Pressable style={styles.button}
+        onPress={() => navigation.navigate("Video Call")}>
+          <Text style={styles.text}>Debug</Text>
+        </Pressable>
       <Pressable style={styles.button}
         onPress={() => navigation.navigate("Load An Existing Profile")}>
           <Text style={styles.text}>Load An Existing Profile</Text>
@@ -107,25 +96,28 @@ function LoadExistingProfile({ navigation }) {
 function CreateNewProfile({ navigation }) {
   return (
     <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      {/* <SpeechToText></SpeechToText> */}
-      {/* <Text>Create New Profile</Text> */}
-      {/* <CreateProfile></CreateProfile> */}
-      <GooglePlayButton
-        style={styles.buttonStyling2}
-        onPress={() => navigation.navigate("Create A Familiar Person Profile")}
-        text="Create a Familiar Person Profile"
-        backgroundColor="#06038D"
-        textColor="#fff"
-        rippleColor="white"
-      />
-      <GooglePlayButton
-        style={styles.buttonStyling2}
-        onPress={() => navigation.navigate("Create A Patient Profile")}
-        text="Create a Patient Profile"
-        backgroundColor="#06038D"
-        textColor="#fff"
-        rippleColor="white"
-      />
+      <Pressable style={styles.button}
+        onPress={() => navigation.navigate("Create A Familiar Person Profile")}>
+          <Text style={styles.text}>Create A Familiar Person Profile</Text>
+        </Pressable>
+        <Pressable style={styles.button}
+        onPress={() => navigation.navigate("Edit A Familiar Person Profile")}>
+          <Text style={styles.text}>Edit A Familiar Person Profile</Text>
+        </Pressable>
+        {/* <View style={{flexDirection: 'row', alignItems: 'center'}}>
+        <View style={{flex: 1, height: 1, width:100, backgroundColor: 'black'}} />
+        <View style={{flex: 1, height: 1, width:100, backgroundColor: 'black'}} />
+      </View> */}
+      <Pressable style={styles.button3}>
+        </Pressable>
+        <Pressable style={styles.button}
+        onPress={() => navigation.navigate("Create A Patient Profile")}>
+          <Text style={styles.text}>Create A Patient Profile</Text>
+        </Pressable>
+        <Pressable style={styles.button}
+        onPress={() => navigation.navigate("Edit A Patient Profile")}>
+          <Text style={styles.text}>Edit A Patient Profile</Text>
+        </Pressable>
     </View>
   );
 }
@@ -177,6 +169,17 @@ const styles = StyleSheet.create({
     width:800,
     margin: 20,
     backgroundColor: '#06038D',
+  },
+  button3: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 1,
+    paddingHorizontal: 32,
+    borderRadius: 10,
+    elevation: 3,
+    width:800,
+    margin: 20,
+    backgroundColor: 'grey',
   },
   text: {
     fontSize: 22,

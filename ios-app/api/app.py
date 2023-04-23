@@ -1,22 +1,24 @@
 import time
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pytz import timezone
 from flask import Flask, request
 from flask_cors import CORS, cross_origin
 from config import *
+import cv2
 
 # Audio and Video Manipulation
 from moviepy.editor import VideoFileClip, AudioFileClip, CompositeAudioClip, concatenate_videoclips
+from PIL import Image
 from pydub import AudioSegment
 from pydub.playback import play
 
 # Imports the Google Cloud client library
 from google.cloud import speech
 from google.cloud import storage
-
-import glob, os
 from os import listdir
 from os.path import isfile, join
+from google.cloud import language_v1
+import glob, os, shutil
 import io
 import random
 import re
@@ -35,24 +37,11 @@ unused_prompts = []
 answers = {}
 prompts_list = []
 matched_questions = {}
-p_name = 'Mirza'
-fp_name = 'Shaziah'
+categories={}
 hospital = 'North York General Hospital'
 
 tz = timezone('EST')
-date_today = datetime.now(tz).strftime("%B %d, %Y")
-month = datetime.now(tz).strftime("%B")
-year = datetime.now(tz).strftime("%Y")
-
-# code to get season from: https://stackoverflow.com/a/28688724
-year_int = datetime.now(tz).year
-seasons = [('winter', (date(year_int,  1,  1),  date(year_int,  3, 20))),
-           ('spring', (date(year_int,  3, 21),  date(year_int,  6, 20))),
-           ('summer', (date(year_int,  6, 21),  date(year_int,  9, 22))),
-           ('fall', (date(year_int,  9, 23),  date(year_int, 12, 20))),
-           ('winter', (date(year_int, 12, 21),  date(year_int, 12, 31)))]
-season = next(season for season, (start, end) in seasons
-                if start <= datetime.today().date() <= end)
+weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 @app.route('/time')
 @cross_origin()
@@ -111,7 +100,7 @@ def download_FP_media_dialogue():
     client=storage.Client()
     bucket_name = "familiar-person" 
 
-    finished_videos_folder = "Patients/"+patient_ID+"/Familiar Person/"+FP_ID+"/FinishedVideos/"
+    finished_videos_folder = "Patients/"+patient_ID+"/Familiar Person/"+FP_ID+"/combinedVideos/"
     videos_folder="Patients/"+patient_ID+"/Familiar Person/"+FP_ID+"/Videos/"
     audio_folder="Patients/"+patient_ID+"/Familiar Person/"+FP_ID+"/Audio/"
 
@@ -179,6 +168,27 @@ def download_FP_media_dialogue():
                 file_path = destination_dir
                 blob.download_to_filename(file_path + file_name)
 
+        if os.path.isfile(file_path + "bg_video.mp4"):
+            print("Exists!")
+            vidcap = cv2.VideoCapture(file_path + "bg_video.mp4")
+            # get total number of frames
+            # set frame position
+            vidcap.set(cv2.CAP_PROP_POS_FRAMES,0)
+            success, image = vidcap.read()
+            if success:
+                cv2.imwrite(file_path+'fpphoto.jpg', image)
+        else:
+            print("**** WARNING: FPPHOTO.JPG NOT CREATED ****")
+
+        # generate date videos for today and tomorrow so playback during call is faster
+        # tomorrow video is needed if call continues past midnight
+
+        video_clip_filenames_today, filename_today = get_date_video_parts_list(datetime.now(tz))
+        video_clip_filenames_tomorrow, filename_tomorrow = get_date_video_parts_list(datetime.now(tz) + timedelta(1))
+
+        write_concatenated_video(video_clip_filenames_today, filename_today)
+        write_concatenated_video(video_clip_filenames_tomorrow, filename_tomorrow)
+
     print("Videos all downloaded! Starting video call set-up.")
 
     # set up initial greeting
@@ -191,11 +201,26 @@ def download_FP_media_dialogue():
 
     return {"Result": "Success"}
 
+# returns list of clip filenames for date video concatenation and the resulting filename
+def get_date_video_parts_list(day):
+    day_parts = ["Today is", weekdays[day.weekday()], str(day.strftime("%B")), str(day.day), str(day.year)]
+    video_clip_filenames_day = []
+
+    for part in day_parts:
+        video_clip_filenames_day.append("tmp/media_from_bucket/fp_videos/"+part+".mp4")
+
+    filename_day = "tmp/media_from_bucket/fp_videos/Today is " + weekdays[day.weekday()] + " " + str(day.strftime("%B")) + " " + str(day.day) + " " + str(day.year) + ".mp4"
+
+    return video_clip_filenames_day, filename_day
+
 @app.route('/transcribe_audio', methods=["POST"])
 def transcribe_audio(request):
     files = request.files
     wav_file = files["files"]
     transcript = ""
+
+    # start_time = datetime.now()
+    # print("Starting Transcription Time at: ", start_time)
 
     try:
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_APPLICATION_CREDENTIALS
@@ -226,11 +251,174 @@ def transcribe_audio(request):
         print(response.results)
         for result in response.results:
             transcript += result.alternatives[0].transcript
+
+        # transcript_file = open('transcripts.txt', 'a')
+        # print(transcript + "\n", file = transcript_file)
+        # transcript_file.close()
+
+        # end_time = datetime.now()
+        # print("Ending Transcription Time at: ", end_time)
+        # print("Time Difference: ", end_time - start_time)
+
+        # transcript_file = open('transcripts_time.txt', 'a')
+        # print("Starting Transcription Time at: " + str(start_time), file = transcript_file)
+        # print("Ending Transcription Time at: " + str(end_time), file = transcript_file)
+        # print("Time Difference: " + str(end_time - start_time) + "\n\n", file = transcript_file)
+        # transcript_file.close()
+
+        # print("\n--------------------------------------------------------\n")
             # return {"Transcript": result.alternatives[0].transcript}
     except e:
         print(e)
         
     return {"Transcript": transcript}
+
+@app.route('/content_classification', methods=["POST"])
+def content_classification(text_input):
+    print("Now doing content classification through Google")
+    num_words = len(text_input.split())
+    # Can't use Google's if the number of words is less than 20
+    if num_words <= 20:
+        return None
+
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_APPLICATION_CREDENTIALS
+
+    language_client = language_v1.LanguageServiceClient()
+
+    document = language_v1.Document(
+        content=text_input, type_=language_v1.Document.Type.PLAIN_TEXT
+    )
+    response = language_client.classify_text(request={"document": document})
+    categories_analyzed = response.categories
+
+    result = {}
+
+    for category in categories_analyzed:
+        # Turn the categories into a dictionary of the form:
+        # {category.name: category.confidence}, so that they can
+        # be treated as a sparse vector.
+        result[category.name] = category.confidence
+
+    print(categories_analyzed)
+    return_content_class = None
+    if len(categories_analyzed) > 0:
+        content_class = categories_analyzed[0].name
+        print("Google classified this as:", content_class)
+        return_content_class = None
+        time_categories = ["/Reference/General Reference/Time & Calendars",
+            "/Hobbies & Leisure/Special Occasions/Holidays & Seasonal Events",
+            "/News/Weather"]
+
+        life_categories = ["/People & Society/Family & Relationships",
+            "/People & Society/Family & Relationships/Family",
+            "/People & Society/Family & Relationships/Marriage",
+            "/People & Society/Kids & Teens",
+            "/Hobbies & Leisure/Special Occasions/Anniversaries"]
+
+        hobbies_categories = ["/Hobbies & Leisure/Other",
+            "/Hobbies & Leisure/Crafts/Art & Craft Supplies",
+            "/Hobbies & Leisure/Crafts/Ceramics & Pottery",
+            "/Hobbies & Leisure/Crafts/Fiber & Textile Arts",
+            "/Hobbies & Leisure/Crafts/Other",
+            "/Hobbies & Leisure/Outdoors/Fishing",
+            "/Hobbies & Leisure/Outdoors/Hiking & Camping",
+            "/Hobbies & Leisure/Outdoors/Hunting & Shooting",
+            "/Hobbies & Leisure/Outdoors/Other",
+            "/Hobbies & Leisure/Radio Control & Modeling/Model Trains & Railroads",
+            "/Hobbies & Leisure/Radio Control & Modeling/Other",
+            "/Hobbies & Leisure/Recreational Aviation",
+            "/Hobbies & Leisure/Water Activities/Boating",
+            "/Hobbies & Leisure/Water Activities/Diving & Underwater Activities",
+            "/Hobbies & Leisure/Water Activities/Surf & Swim",
+            "/Hobbies & Leisure/Water Activities/Other",
+            "/Books & Literature/Audiobooks",
+            "/Books & Literature/Book Retailers",
+            "/Books & Literature/Children's Literature",
+            "/Books & Literature/E-Books",
+            "/Books & Literature/Fan Fiction",
+            "/Books & Literature/Literary Classics",
+            "/Books & Literature/Poetry",
+            "/Books & Literature/Writers Resources",
+            "/Books & Literature/Other",
+            "/Beauty & Fitness/Fitness/Bodybuilding",
+            "/Beauty & Fitness/Fitness/Fitness Equipment & Accessories",
+            "/Beauty & Fitness/Fitness/Fitness Instruction & Personal Training",
+            "/Beauty & Fitness/Fitness/Gyms & Health Clubs",
+            "/Beauty & Fitness/Fitness/High Intensity Interval Training",
+            "/Beauty & Fitness/Fitness/Yoga & Pilates",
+            "/Beauty & Fitness/Fitness/Other",
+            "/Beauty & Fitness/Weight Loss",
+            "Arts & Entertainment"
+            ]
+
+        if content_class in time_categories:
+            return_content_class = "Time"
+        if content_class in life_categories:
+            return_content_class = "Life"
+        if content_class in hobbies_categories:
+            return_content_class = "Hobbies"
+        print("Returned content class:", return_content_class)
+    return return_content_class or None
+
+def naive_content_classification(text_input):
+    #categories_list = list(categories.keys())
+    categories_list = ["Time", "Life", "Hobbies", "Negative Feelings"]
+
+    # time_keywords = ["month", "time", "year", "day", "season"]
+    life_keywords = ["children", "spouse", "partner", "husband", "wife", "school", "child", 
+    "friends", "friend", "sibling", "siblings", "brother","brothers", "sister", "sisters",
+    "mother", "mom", "father", "dad", "grandchild", "grandchildren", "granddaughter", "grandson"]
+    hobbies_keywords = ["hobby", "hobbies", "read", "reading", "sew", "sewing", "bingo", "games", "card games", "books",
+        "crochet", "knit"]
+
+    # for keyword in time_keywords:
+    #     if keyword in text_input:
+    #         return "Time"
+
+    for keyword in life_keywords:
+        if keyword in text_input:
+            return "Life"
+
+    for keyword in hobbies_keywords:
+        if keyword in text_input:
+            return "Hobbies"
+
+    return None
+
+@app.route('/sentiment_analysis', methods=["POST"])
+def sentiment_analysis(text_input):
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_APPLICATION_CREDENTIALS
+
+    """Run a sentiment analysis request on text within a passed filename."""
+    client = language_v1.LanguageServiceClient()
+
+    document = language_v1.Document(
+        content=text_input, type_=language_v1.Document.Type.PLAIN_TEXT
+    )
+
+    annotations = client.analyze_sentiment(request={"document": document})
+
+    # Print the results
+    score = annotations.document_sentiment.score
+    magnitude = annotations.document_sentiment.magnitude
+
+    most_negative = min([sentence.sentiment.score for sentence in annotations.sentences])
+
+    # Can comment out, just for debugging----
+    for index, sentence in enumerate(annotations.sentences):
+        sentence_sentiment = sentence.sentiment.score
+        print(
+            "Sentence {} has a sentiment score of {}".format(index, sentence_sentiment)
+        )
+
+    print(
+        "Overall Sentiment: score of {} with magnitude of {}".format(score, magnitude)
+    )
+
+    #---------
+
+    return most_negative
+
 
 ### This function takes in a particular patient, FP, and conversation decision
 @app.route('/download_media', methods=["POST"])
@@ -241,70 +429,88 @@ def prepare_video(decision):
 
     video_clip_filenames = []
 
-    for prompt in prompts:
-        print("prompt: ", prompt)
-        prompt = prompt.replace('?', '')
-        prompt = prompt.replace('.', '')
+    try:
+        for prompt in prompts:
+            print("prompt: ", prompt)
+            prompt = prompt.replace('?', '')
+            prompt = prompt.replace('.', '')
 
-        if len(prompts) == 1:
-            shutil.copy(videos_dir+prompt+".mp4", destination_dir)
-            os.rename(destination_dir+prompt+".mp4", destination_dir+"new_video_clip.mp4")
-            return
+            if len(prompts) == 1:
+                shutil.copy(videos_dir+prompt+".mp4", destination_dir)
+                os.rename(destination_dir+prompt+".mp4", destination_dir+"new_video_clip.mp4")
+                return
 
-        video_clip_filenames.append(videos_dir+prompt+".mp4")
+            video_clip_filenames.append(videos_dir+prompt+".mp4")
 
-    clips = [VideoFileClip(c) for c in video_clip_filenames]
-        
-    final_video = concatenate_videoclips(clips)
-    final_video.write_videofile("tmp/media_from_bucket/new_video_clip.mp4",
-                                codec='libx264',
-                                audio_codec='aac',
-                                temp_audiofile='temp-audio.m4a',
-                                remove_temp=True)
+        write_concatenated_video(video_clip_filenames, "tmp/media_from_bucket/new_video_clip.mp4")
+
+    except Exception as e:
+        print("An exception occurred in prepare_video")
+        print(e)
 
     return
 
 def decision_setup():
-    global answers, prompts_list, matched_questions
-    greetings = ["Hi!",
-             "Hello!",
-             "Hey!",
-             "Hello {0}".format(p_name),
-             "Hi {0}, nice to see you again!".format(p_name)]
+    global answers, prompts_list, matched_questions, categories
 
     answers = {
-        # "who are you" : ["I am {0}.".format(fp_name)],
         "where am i" : ["You are in {0}.".format(hospital)],
         "why am i here" : ["You are in hospital because you are sick."],
-        # "what day is it today" : ["Today is {0}.".format(date_today)],
-        # "what month is it" : ["It is {0}.".format(month)],
-        # "what year is it" : ["It is the year {0}.".format(year)],
-        # "what season is it" : ["It is {0} now.".format(season)],
+        "what day is it today" : ["date"],
+        "what month is it" : ["month"],
+        "what year is it" : ["year"],
+        "what season is it" : ["season"]
     }
 
-    prompts_list = ["How are you doing today?",
-            "Do you know where you are?",
-            # "Do you know what year it is?",
+    prompts_list = [
+        "Are you feeling scared or afraid Tell me more about how you are feeling.",
+        "Did you know that an ostrichs eye is bigger than its brain?",
+        "Did you know that potato chips were invented by mistake?",
+        "Did you know that the heart of a shrimp is located in its head?",
+        "Do you have a spouse What is their name?",
+        "Do you know what month it is?",
+        "Do you know what season it is?",
+        "Do you know what year it is?",
+        "Do you know where you are?",
+        "Do you like to exercise?",
+        "Do you like to read?",
+        "Do you like to sew?",
+        "Do you remember the time when you lost your first tooth?",
+        "Do you remember the time when you were going to school?",
+        "How are you doing today?",
+        "How many children do you have?",
+        "Tell me about your children.",
+        "Tell me about your friends in school.",
+        "What are your hobbies?",
+        "Where do you live?",
+        "You must be feeling very scared right now."
+        ]
+    
+    categories = {"Time":["Do you know what year it is?",
             "Do you know what month it is?",
-            "Do you know what season it is?",
+            "Do you know what season it is?"],
+        "Life":[
             "How many children do you have?",
             "Do you have a spouse What is their name?",
-            # "Where do you live?",
-            "What are your hobbies?",
-            "Are you feeling scared or afraid Tell me more about how you are feeling.",
+            "Tell me about your friends in school.",
+            "Tell me about your children."],
+        "Hobbies":["What are your hobbies?",
             "Do you like to read?",
             "Do you like to sew?",
-            "Do you like to exercise?",
-            "Tell me about your friends in school.",
-            "Tell me about your children."
-            ]
+            "Do you like to exercise?"],
+        "Negative Feelings":[
+            "Are you feeling scared or afraid Tell me more about how you are feeling.",
+            "You must be feeling very scared right now."],
+        "Facts":["Did you know that an ostrichs eye is bigger than its brain?",
+        "Did you know that potato chips were invented by mistake?",
+        "Did you know that the heart of a shrimp is located in its head?"]}
 
     matching_questions = {
-        ('where', 'where am i'): "where am i",
-        ('what day', 'what is today', 'what\'s today\'s date', 'what is today\'s date', 'what date is it today', 'which day'): "what day is it today",
-        ('what month', 'which month'): "what month is it",
-        ('what year', 'which year'): "what year is it",
-        ('what season', 'which season'): "what season is it"
+        ('where am i', 'i don\'t know where i am'): "where am i",
+        ('what day is it', 'what is today', 'what\'s today\'s date', 'what is today\'s date', 'what date is it today', 'which day is it'): "what day is it today",
+        ('what month is it', 'which month is it'): "what month is it",
+        ('what year is it', 'which year is it'): "what year is it",
+        ('what season is it', 'which season is it'): "what season is it"
     }
 
     matched_questions = {}
@@ -313,6 +519,17 @@ def decision_setup():
             matched_questions[key] = v
     
     return
+
+# concatenates videos in clip_filenames_list and writes the concatenated video to final_video_fpath
+def write_concatenated_video(clip_filenames_list, final_video_fpath):
+    clips = [VideoFileClip(c) for c in clip_filenames_list]
+
+    final_video = concatenate_videoclips(clips)
+    final_video.write_videofile(final_video_fpath,
+                                codec='libx264',
+                                audio_codec='aac',
+                                temp_audiofile='temp-audio.m4a',
+                                remove_temp=True)
 
 def find_matching_question(matched_questions, phrase):
   question = phrase
@@ -323,6 +540,19 @@ def find_matching_question(matched_questions, phrase):
   
   return question
 
+def get_season(today):
+    # code to get season from: https://stackoverflow.com/a/28688724
+    year_int = today.year
+    seasons = [('winter', (date(year_int,  1,  1),  date(year_int,  3, 20))),
+            ('spring', (date(year_int,  3, 21),  date(year_int,  6, 20))),
+            ('summer', (date(year_int,  6, 21),  date(year_int,  9, 22))),
+            ('fall', (date(year_int,  9, 23),  date(year_int, 12, 20))),
+            ('winter', (date(year_int, 12, 21),  date(year_int, 12, 31)))]
+    season = next(season for season, (start, end) in seasons
+                  if start <= today.date() <= end)
+
+    return season
+
 def get_response(p_input):
   global unused_prompts
   phrases = re.split("\? |\. |\! |\, ", p_input.lower())
@@ -330,26 +560,92 @@ def get_response(p_input):
   # if it exists, remove question mark at the end of last question to match ones in "answers" list
   phrases[-1] = phrases[-1].replace('?', '')
   response = ""
-#   print("phrases: ", phrases)
-
-#   print("answers: ", answers)
-#   print("prompts_list: ", prompts_list)
-#   print("answers: ", matched_questions)
-#   print("unused_prompts: ", unused_prompts)
+  num_words = len(p_input.split())
+  prompt = None
+  avoid_time_prompts = False
 
   for phrase in phrases:
     question = find_matching_question(matched_questions, phrase)
     if question in answers:
-      response = response + random.choice(answers[question]) + " "
+      answer = random.choice(answers[question])
+
+      # check for time-based answers
+      if answer == "date":
+        weekday = weekdays[datetime.now(tz).weekday()]
+        date_today = weekday + " " + datetime.now(tz).strftime("%B %d %Y")
+        answer = "Today is {}.".format(date_today)
+        avoid_time_prompts = True
+      elif answer == "month":
+        month = datetime.now(tz).strftime("%B")
+        answer = "It is, {0}.".format(month)
+      elif answer == "year":
+        year = datetime.now(tz).year
+        answer = "It is the year {0}.".format(year)
+      elif answer == "season":
+        answer = "It is {0} now.".format(get_season(datetime.now(tz)))
+
+      response = response + answer + " "
   
   if not unused_prompts:
       unused_prompts = prompts_list.copy()
 
-  prompt = random.choice(unused_prompts)
-  unused_prompts.remove(prompt)
+  if (num_words <= 0):
+    prompt = random.choice(unused_prompts)
+    unused_prompts.remove(prompt)
+  else: 
+    input_sentiment = sentiment_analysis(p_input)
 
-  if "You are in {0}.".format(hospital) in response and prompt == "Do you know where you are?":
-    # get new prompt so that we don't ask them if they know where they are right after telling them where they are
+    # Can't use Google's if the number of words is less than 20
+    # if num_words <= 20:
+    #     content_class = naive_content_classification(p_input)
+    # else:
+    content_class = content_classification(p_input)
+
+    if input_sentiment is None or input_sentiment > -0.55:
+        if content_class is None:
+            prompt = random.choice(unused_prompts)
+            unused_prompts.remove(prompt)
+        else:
+            content_prompts = categories[content_class]
+            for content_prompt in content_prompts:
+                if content_prompt in unused_prompts:
+                    prompt = content_prompt
+                    unused_prompts.remove(prompt)
+                    break
+
+    else:
+        # Fairly negative sentiment
+        feelings_prompts = categories["Negative Feelings"]
+
+        # Try to take the first value that's in unused prompts
+        prompt = None
+        for feelings_prompt in feelings_prompts:
+            if feelings_prompt in unused_prompts:
+                prompt = feelings_prompt
+                unused_prompts.remove(prompt)
+                break
+
+        if prompt is None:
+            prompt = random.choice(feelings_prompts)        
+    
+  if "You are in {0}.".format(hospital) in response or "You are in hospital because you are sick." in response:
+    no_facts_prompts = []
+    for prompt in unused_prompts:
+        if prompt not in categories["Facts"] and prompt != "Do you know where you are?":
+            no_facts_prompts.append(prompt)
+    prompt = random.choice(no_facts_prompts)
+    unused_prompts.remove(prompt)
+
+  if avoid_time_prompts:
+    no_time_prompts = []
+    for prompt in unused_prompts:
+        if prompt not in categories["Time"]:
+            no_time_prompts.append(prompt)
+    prompt = random.choice(no_time_prompts)
+    unused_prompts.remove(prompt)
+
+  # If all of the prompts have been used recently
+  if prompt is None:
     prompt = random.choice(unused_prompts)
     unused_prompts.remove(prompt)
 
@@ -365,12 +661,22 @@ def generate_decision():
     transcript = transcribe_audio(request)
     return_value = {"Return":"Failure"}
     print("***TRANSCRIPT: " + transcript["Transcript"] + "\n")
-    # if transcript["Transcript"]:
-    # call the decision functions
-    # change return_value here
     return_value = {"Return": get_response(transcript["Transcript"])}
     print("***CHOSEN RESPONSE:", return_value["Return"])
     return return_value
+
+@app.route('/end_call', methods=["GET"])
+def end_call():
+    # clean up video files on server side
+    # other option is to store downloaded videos in different folders depending on patientID & fpID
+    videos_dir = "tmp/media_from_bucket/fp_videos/"
+    for file in os.listdir(videos_dir):
+        if file != "bg_video.mp4" and file != "fpphoto.jpg":
+            complete_file_name = os.path.join(videos_dir, file)
+            os.remove(complete_file_name)
+
+    print("deleted downloaded videos")
+    return {"Result": "Success"}
 
 # (TODO) Database stuff below -- put this in another file later
 from flask import render_template
@@ -392,6 +698,21 @@ def get_all_patients():
     res = cur.execute("SELECT * FROM Patients")
 
     result = clean_sql_output(res)
+    con.commit()
+    con.close()
+
+    return result
+
+def get_patient_by_patientID(patientID):
+    # (TODO) find a way to make the first two lines able to be taken out, it'll throw a wrong thread error otherwise
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+
+    res = cur.execute("SELECT * FROM Patients where PatientID = ?", patientID)
+
+    result = clean_sql_output(res)
+    con.commit()
+    con.close()
 
     return result
 
@@ -413,20 +734,67 @@ def insert_a_patient(request):
     con.commit()
     return {"result":"Success"}
 
+# (TODO) Add error checking
+def edit_a_patient(request):
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+    print(request)
+    patient_info = request.get_json()
+
+    patient_ID = patient_info["patientID"]
+    first_name = patient_info["firstName"]
+    last_name = patient_info["lastName"]
+    if patient_info["hospitalID"]:
+        hospital_ID = patient_info["hospitalID"]
+        res = cur.execute("UPDATE Patients SET FirstName = ?, LastName= ?, HospitalPatientID = ? where PatientID = ?", (first_name, last_name, hospital_ID, patient_ID))
+    else:
+        res = cur.execute("UPDATE Patients SET FirstName = ?, LastName= ? where PatientID = ?", (first_name, last_name, patient_ID))
+    con.commit()
+    return {"result":"Success"}
+
+# (TODO) Add error checking
+def delete_a_patient(request):
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+    patient_info = request.get_json()
+    patient_ID = patient_info["patientID"]
+    res = cur.execute("DELETE from Patients where PatientID = ?", (patient_ID,))
+    con.commit()
+    return {"result":"Success"}
+
 # (TODO) Need to add delete and modify but later 
-@app.route("/db/patients", methods=["GET","POST"])
+@app.route("/db/patients", methods=["GET","POST", "PUT", "DELETE"])
 def patients():
     if request.method == "GET":
-        return get_all_patients()
+        patientID = request.args.get("patientID")
+        if patientID:
+            return get_patient_by_patientID(patientID)
+        else:
+            return get_all_patients()
     elif request.method == "POST":
-        print("post!")
         return insert_a_patient(request)
+    elif request.method == "PUT":
+        print("put for patient!")
+        return edit_a_patient(request)
+    elif request.method == "DELETE":
+        print("delete for patient!")
+        return delete_a_patient(request)
 
 def get_all_favourite_persons():
     con = sqlite3.connect(DATABASE)
     cur = con.cursor()
 
     res = cur.execute("SELECT * FROM FavouritePersons")
+
+    result = clean_sql_output(res)
+   
+    return result
+
+def get_favourite_persons_by_FP_ID(FP_ID):
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+
+    res = cur.execute("SELECT * FROM FavouritePersons where FavouritePersonsID=?", (FP_ID,))
 
     result = clean_sql_output(res)
    
@@ -450,8 +818,8 @@ def insert_a_favourite_person(request):
     
     photo = files["photoFile"]
     recording_one = files["recordingOneFile"]
-    recording_two = files["recordingTwoFile"]
-    recording_three = files["recordingThreeFile"]
+    # recording_two = files["recordingTwoFile"]
+    # recording_three = files["recordingThreeFile"]
 
     
     request_data = request.form or request.get_json()
@@ -471,6 +839,9 @@ def insert_a_favourite_person(request):
     # also need to check the type of the photo too :')
     stored_photo_file = os.getcwd() + r"/tmp/" + photo.filename + ".jpg"
     photo.save(stored_photo_file)
+
+    img = Image.open(os.getcwd() + r"/tmp/" + photo.filename + ".jpg")
+    img.save(os.getcwd() + r"/tmp/" + photo.filename + ".png")
     
     if photo:
         storage_client = storage.Client()
@@ -490,27 +861,27 @@ def insert_a_favourite_person(request):
         blob = bucket.blob(google_bucket_link+recording_one.filename) 
         blob.upload_from_filename(stored_recording_one_file)
 
-    # save the recording 2
-    stored_recording_two_file = os.getcwd() + r"/tmp/" + recording_two.filename + ".wav"
-    recording_two.save(stored_recording_two_file)
+    # # save the recording 2
+    # stored_recording_two_file = os.getcwd() + r"/tmp/" + recording_two.filename + ".wav"
+    # recording_two.save(stored_recording_two_file)
 
-    if recording_two:
-        storage_client = storage.Client()
-        bucket = storage_client.bucket(FP_FORM_BUCKET_NAME)
-        # Upload file to Google Bucket (the "familiar-person-form-data" one)
-        blob = bucket.blob(google_bucket_link +recording_two.filename) 
-        blob.upload_from_filename(stored_recording_two_file)
+    # if recording_two:
+    #     storage_client = storage.Client()
+    #     bucket = storage_client.bucket(FP_FORM_BUCKET_NAME)
+    #     # Upload file to Google Bucket (the "familiar-person-form-data" one)
+    #     blob = bucket.blob(google_bucket_link +recording_two.filename) 
+    #     blob.upload_from_filename(stored_recording_two_file)
 
-    # save the recording 3
-    stored_recording_three_file = os.getcwd() + r"/tmp/" + recording_three.filename + ".wav"
-    recording_three.save(stored_recording_three_file)
+    # # save the recording 3
+    # stored_recording_three_file = os.getcwd() + r"/tmp/" + recording_three.filename + ".wav"
+    # recording_three.save(stored_recording_three_file)
 
-    if recording_three:
-        storage_client = storage.Client()
-        bucket = storage_client.bucket(FP_FORM_BUCKET_NAME)
-        # Upload file to Google Bucket (the "familiar-person-form-data" one)
-        blob = bucket.blob(google_bucket_link+recording_three.filename) 
-        blob.upload_from_filename(stored_recording_three_file)
+    # if recording_three:
+    #     storage_client = storage.Client()
+    #     bucket = storage_client.bucket(FP_FORM_BUCKET_NAME)
+    #     # Upload file to Google Bucket (the "familiar-person-form-data" one)
+    #     blob = bucket.blob(google_bucket_link+recording_three.filename) 
+    #     blob.upload_from_filename(stored_recording_three_file)
 
     # @Ruqhia you can either call your endpoint here (since they're all in Google Bucket)
     # or at the end of the function
@@ -521,9 +892,10 @@ def insert_a_favourite_person(request):
 
     # remove the 4 created files
     os.remove(os.getcwd() + r"/tmp/" +"photo.jpg")
+    os.remove(os.getcwd() + r"/tmp/" +"photo.png")
     os.remove(os.getcwd() + r"/tmp/" +"recording_1.wav")
-    os.remove(os.getcwd() + r"/tmp/" +"recording_2.wav")
-    os.remove(os.getcwd() + r"/tmp/" +"recording_3.wav")
+    # os.remove(os.getcwd() + r"/tmp/" +"recording_2.wav")
+    # os.remove(os.getcwd() + r"/tmp/" +"recording_3.wav")
 
     con = sqlite3.connect(DATABASE)
     cur = con.cursor()
@@ -681,15 +1053,46 @@ def insert_a_favourite_person(request):
 
     return {"result":"Success"}
 
-@app.route("/db/favouritepersons", methods=["GET","POST"])
+# (TODO) Add error checking
+def edit_a_FP(request):
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+    patient_info = request.get_json()
+
+    FP_ID = patient_info["favouritePersonsID"]
+    first_name = patient_info["firstName"]
+    last_name = patient_info["lastName"]
+    res = cur.execute("UPDATE FavouritePersons SET FirstName = ?, LastName= ? where FavouritePersonsID = ?", (first_name, last_name, FP_ID))
+    con.commit()
+    return {"result":"Success"}
+
+# (TODO) Add error checking
+def delete_a_FP(request):
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+    patient_info = request.get_json()
+
+    FP_ID = patient_info["favouritePersonsID"]
+    res = cur.execute("DELETE from FavouritePersons where FavouritePersonsID = ?", (FP_ID,))
+    con.commit()
+    return {"result":"Success"}
+
+@app.route("/db/favouritepersons", methods=["GET","POST", "PUT", "DELETE"])
 def favourite_persons():
     if request.method == "GET":
         patientID = request.args.get("patientID")
+        favouritePersonsID = request.args.get("favouritePersonsID")
         if patientID:
             return get_favourite_persons_for_patient(patientID)
+        elif favouritePersonsID:
+            return get_favourite_persons_by_FP_ID(favouritePersonsID)
         else:
             return get_all_favourite_persons()
     elif request.method == "POST":
         return insert_a_favourite_person(request)
+    elif request.method == "PUT":
+        return edit_a_FP(request)
+    elif request.method == "DELETE":
+        return delete_a_FP(request)
 
 
