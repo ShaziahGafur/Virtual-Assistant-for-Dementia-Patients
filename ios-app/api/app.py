@@ -877,6 +877,32 @@ def insert_a_favourite_person(request):
 
     # @Ruqhia you can either call your endpoint here (since they're all in Google Bucket)
     # or at the end of the function
+    from joblib import Parallel, delayed
+    import requests
+    from google.cloud import storage
+    def sumall(audio):
+        json_data = {
+            'text': 'Hello, World!',
+            'audio': audio,
+            'image': 'photo.png',
+            # replace name with the name of the pateint
+            'name': "BananaMonster",
+            # replace patientId with Id of patient
+            'patientId': "1",
+            # replace fpID with id of FP
+            'fpId': "11"
+        }
+        headers = {
+            'Content-Type': 'application/json',
+            # Replace bearer with gcp cloud token from shell
+            'Authorization': 'bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImFjZGEzNjBmYjM2Y2QxNWZmODNhZjgzZTE3M2Y0N2ZmYzM2ZDExMWMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJhY2NvdW50cy5nb29nbGUuY29tIiwiYXpwIjoiNjE4MTA0NzA4MDU0LTlyOXMxYzRhbGczNmVybGl1Y2hvOXQ1Mm4zMm42ZGdxLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiNjE4MTA0NzA4MDU0LTlyOXMxYzRhbGczNmVybGl1Y2hvOXQ1Mm4zMm42ZGdxLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwic3ViIjoiMTE1NzEyNjgyMDAzMjMxNjU4NzQ3IiwiZW1haWwiOiJydXFoaWF6QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJhdF9oYXNoIjoiMzRDcTNyM0dYZlhfaURNZlptNzhLdyIsImlhdCI6MTY4MDgwNzc2NiwiZXhwIjoxNjgwODExMzY2LCJqdGkiOiJiZWViMTEyNzcwODI5ZTRkNzVkZDliNTlhZDVkYjM1MzczZDNlYzhiIn0.dcJkbNicQ1tDvvMHNZt4TiNcJV7AclZxjQwbWC_8WM90ex9Q3i7X1G3hD63tj_L5bnlM8lL-ljM12ZSItSw7MQO13L4lclQymeAvfqzP-x5ZRhHzYuamGIoWWqgUqdT-jLFVSr-Vqlagw9tVg0IEn7eLyXTrhcRM2cI6rZLE0UL6nBlhpRaFMYO6oysgLuEfDZfeuYoQdEb0Z6TjzMvEEvJCcF8KCypjQQcB3qOwyiwItfbKdRte8PDVW8fx8asuPdAbEtDfMso6J8OfnOkB1yL_WtJlZrvpf0_wu9fv3h-ojstQfOT1kWc65DQKJBSUAEBi1EfH9iVbQnkj7rhdtA',
+        }
+        # replace url below with url of the cloud function url 
+        response = requests.post('https://face-animation-1-yqf2r7f2sa-uc.a.run.app',headers=headers, json=json_data,timeout=6000 )
+        return response
+    # replace audios1 with the audio files stored in gcp cloud 
+    audios1 = ["How are you doing today", "Today is","Where do you live","Do you remember the time when you lost your first tooth","It is","It is the year twenty twenty-three", "It is winter now","Are you feeling scared or afraid Tell me more about how you are feeling","Did you know that an ostrich's eye is bigger than its brain","Did you know that potato chips were invented by mistake","Did you know that the heart of a shrimp is located in its head","Do you have a spouse What is their name","Do you know what month it is","Do you know what season it is","Do you know what year it is","Do you know where you are","Do you like to exercise", "Do you like to read","Do you like to sew","Do you remember the time when you were going to school","How are you doing today","How many children do you have","Tell me about your children","Tell me about your friends in school","What are your hobbies","You must be feeling very scared right now","all_short_prompts","You are in hospital because you are sick","You are in North York General Hospital","uhmm"]
+    Parallel(n_jobs=30, verbose=10)(delayed(sumall)(i) for i in audios1)
 
     # remove the 4 created files
     os.remove(os.getcwd() + r"/tmp/" +"photo.jpg")
