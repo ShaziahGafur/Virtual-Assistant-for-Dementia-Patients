@@ -1,6 +1,8 @@
 # Virtual-Assistant-for-Dementia
 
 ## How to run the iOS Application
+Clone the branch 'main'. Please refer to all of the documentation in the folder 'docs'.
+
 For extra links, refer to this document: [Documentation](https://docs.google.com/document/d/1drUgM7sAjvyY1wdhVYIKTmXiFKVz9cIe8cFuc7jUkfY/edit?usp=sharing)
 
 
