@@ -1,14 +1,9 @@
 # Virtual-Assistant-for-Dementia
 
 ## How to run the iOS Application
-Clone the branch 'main'. Please refer to all of the documentation in the folder 'docs'.
+Clone the branch 'main'. Please refer to all of the documentation in the folder 'docs', which has documentation on creating a Google Cloud Project, the database, the Image Animation automation and the voice cloning automation.
 
-For extra links, refer to this document: [Documentation](https://docs.google.com/document/d/1drUgM7sAjvyY1wdhVYIKTmXiFKVz9cIe8cFuc7jUkfY/edit?usp=sharing)
-
-
-Front-End is in React-Native
-
-Back-End is in Flask
+This project uses React Native, Flask, Google Cloud for APIs, and SQLite for the database. 
 
 ---
 
