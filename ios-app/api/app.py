@@ -895,7 +895,7 @@ def insert_a_favourite_person(request):
         headers = {
             'Content-Type': 'application/json',
             # Replace bearer with gcp cloud token from shell
-            'Authorization': 'bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImFjZGEzNjBmYjM2Y2QxNWZmODNhZjgzZTE3M2Y0N2ZmYzM2ZDExMWMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJhY2NvdW50cy5nb29nbGUuY29tIiwiYXpwIjoiNjE4MTA0NzA4MDU0LTlyOXMxYzRhbGczNmVybGl1Y2hvOXQ1Mm4zMm42ZGdxLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiNjE4MTA0NzA4MDU0LTlyOXMxYzRhbGczNmVybGl1Y2hvOXQ1Mm4zMm42ZGdxLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwic3ViIjoiMTE1NzEyNjgyMDAzMjMxNjU4NzQ3IiwiZW1haWwiOiJydXFoaWF6QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJhdF9oYXNoIjoiMzRDcTNyM0dYZlhfaURNZlptNzhLdyIsImlhdCI6MTY4MDgwNzc2NiwiZXhwIjoxNjgwODExMzY2LCJqdGkiOiJiZWViMTEyNzcwODI5ZTRkNzVkZDliNTlhZDVkYjM1MzczZDNlYzhiIn0.dcJkbNicQ1tDvvMHNZt4TiNcJV7AclZxjQwbWC_8WM90ex9Q3i7X1G3hD63tj_L5bnlM8lL-ljM12ZSItSw7MQO13L4lclQymeAvfqzP-x5ZRhHzYuamGIoWWqgUqdT-jLFVSr-Vqlagw9tVg0IEn7eLyXTrhcRM2cI6rZLE0UL6nBlhpRaFMYO6oysgLuEfDZfeuYoQdEb0Z6TjzMvEEvJCcF8KCypjQQcB3qOwyiwItfbKdRte8PDVW8fx8asuPdAbEtDfMso6J8OfnOkB1yL_WtJlZrvpf0_wu9fv3h-ojstQfOT1kWc65DQKJBSUAEBi1EfH9iVbQnkj7rhdtA',
+            'Authorization': 'bearer ',
         }
         # replace url below with url of the cloud function url 
         response = requests.post('https://face-animation-1-yqf2r7f2sa-uc.a.run.app',headers=headers, json=json_data,timeout=6000 )
