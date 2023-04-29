@@ -1,5 +1,8 @@
 # Virtual-Assistant-for-Dementia
 
+## Demos of our Application
+Demonstration of our Video Call Functionality: https://drive.google.com/file/d/1BUVfxPlsUkjYGHuKzA6W-qGKIGHU5Qe2/preview
+
 ## How to run the iOS Application
 Clone the branch 'main'. Please refer to all of the documentation in the folder 'docs', which has documentation on creating a Google Cloud Project, the database, the Image Animation automation and the voice cloning automation.
 
@@ -11,72 +14,57 @@ This project uses React Native, Flask, Google Cloud for APIs, and SQLite for the
 #### 1) For React-Native: 
 [Set Up Environment for React Native](https://reactnative.dev/docs/environment-setup)
 
-Download Expo Go on your device
+Download Expo Go on your device (this must be an iOS device - either an iPad, or an iPhone). Expo also can use the iOS Simulator if you are running the project on a Mac. 
 
 In the ios-app directory, do `npm install`
 
 #### 2) For Flask:
 Install Python 3
 
-Set up a virtual environment (or use mine):
+Set up a virtual environment:
 
-Set up a virtual environment by following [virtualenv documentation](https://docs.python.org/3/library/venv.html). You will need to pip install everything again. I'll make a requirements.txt soon. 
+Set up a virtual environment by following [virtualenv documentation](https://docs.python.org/3/library/venv.html). You will need to pip install everything again, you can do this by `pip install -r requirements.txt`.
 
-To enter the virtual environment: (on Windows) `env\Scripts\activate` inside the api directory. On Mac, 'source env/bin/activate'. You should see "(env)" in front of all your terminal cmds.
+To enter the virtual environment: (on Windows) `env\Scripts\activate` inside the api directory. On Mac, `source env/bin/activate`. You should see "(env)" in front of all your terminal cmds.
 
 To deactivate the virtual environment: `deactivate`. The "(env)" should disappear.
 
 #### 3) Create a Google Cloud Service Account
 
-On the Google Cloud account *and* in the Capstone Google Cloud Project, make a Google Cloud Service account. Follow these [instructions from Google](https://developers.google.com/workspace/guides/create-credentials#service-account). Make sure you save the .json of your key somewhere, and that you give yourself owner permission. 
+To create a Google Cloud Project, you must follow the steps in the documentation, located at "docs/Google Cloud Project Documentation.pdf". If one is already created (either by yourself or a member of your team), you can simply create a service account (also demonstrated in the documentation). 
 
 #### 4) Authenticate your Google Cloud Service Account Credentials when calling Google Client APIs
 
-Basically, when you're calling Google Client APIs, you need to authenticate / declare your credentials to Google, or else Google will just refuse your request.
+When you're calling Google Client APIs, you need to authenticate / declare your credentials to Google, or else Google will just refuse your request.
 
 In ios-api/api/config.py, change GOOGLE_APPLICATION_CREDENTIALS to be the path of your Google Service .json key.
 
----
-### Running 
+<img width="1094" alt="Screenshot 2023-04-28 at 7 53 33 PM" src="https://user-images.githubusercontent.com/44852580/235271150-d3a94efe-281f-40ef-8c56-3cf350f8b55d.png">
 
-Hopefully everything is now set up. 
+---
+### Running the Application
 
 #### 1) Run the Backend
 
-Start another terminal, and leave the Ngrok one open. cd into the Virtual-Assistant ..../ios-app/api folder. (This might be \ instead sorry I'll double check this)
+Start a terminal, and cd into the Virtual-Assistant-for-Dementia-Patients/ios-app/api folder. 
 
 Start the virtual environment: `env\Scripts\activate` for Windows. On Mac, 'source env/bin/activate'.
 
 Start the back-end app by: `flask run --host=0.0.0.0`. This should dynamically refresh when you Ctrl-S on the app.py file so you don't need to stop and restart every time. Check that this is working by typing `localhost:5000/time` in your browser. You shouldn't get a 404 page.
 
 You should see two IP addresses pop up:
-![image](https://user-images.githubusercontent.com/44852580/201503173-3f3fe8a0-2cc5-42e7-bd9b-a790a2d3262c.png)
-In the .env file (inside ios-app directory), change BACKEND_API to be the value of the second IP address (the one that's not 127.0.0.1).
+
+<img width="575" alt="Screenshot 2023-04-28 at 7 57 17 PM" src="https://user-images.githubusercontent.com/44852580/235271361-c42ab393-d7bd-47ad-bda7-da4563193250.png">
+
+In the .env file (inside ios-app directory), change REACT_APP_BACKEND_API to be the value of the second IP address (the one that's not 127.0.0.1).
+
+<img width="742" alt="Screenshot 2023-04-28 at 7 58 53 PM" src="https://user-images.githubusercontent.com/44852580/235271436-e176dde1-a9f0-4d49-8ad9-6e4446521da2.png">
 
 #### 2) Run the Front End
 
-Start another terminal and go into the Virtual-Assistant .... etc folder, and run `cd ios-app`. You should have 3 terminals at this point.
+Start another terminal, and cd into the Virtual-Assistant-for-Dementia-Patients/ios-app folder. You should have 2 terminals at this point.
 
-Now, run `npm start`. You should see something nice and pretty pop up with a QR code. On your Camera app, use the QR code to open the Expo Go application, and you should see the app running. 
+Now, run `npm start`. You should see a QR code pop-up. On your Camera app on the device that has Expo Go installed (iPhone or iPad), use the QR code to open the Expo Go application, and you should see the app running. However, if you are running the project on a MacOS, you can also use the built-in iOS Simulator provided by XCode (press "i" in the terminal). Expo may take some time to render, you can press "r" to refresh if you want. 
 
----
-### Note about communicating:
+<img width="707" alt="Screenshot 2023-04-28 at 8 01 12 PM" src="https://user-images.githubusercontent.com/44852580/235271541-f541e128-5f61-4152-ba90-332e4fc7e230.png">
 
-For some ????? reason, React-Native's "fetch" doesn't work when doing POST requests with a body. You'll get the request but it'll have nothing in the body. I haven't tested if this is the same for GET or DELETE requests. Use "axios" instead. I have an example already set up in the RecordAudio.js file. 
-
----
-### Old Notes on Ngrok which we may need for deploying to PROD
-
-Installation:
-
-choco install ngrok
-
-Ngrok is for port-forwarding. Essentially when you're on the Expo Go app, the localhost on your iPad and the localhost on your computer will be different. Usually you can find the IP Address of your computer by doing ipconfig on Windows, and use that IP address instead but I found that didn't work on UofT wifi / my computer for some reason. Ngrok basically exposes a port on your computer to the Internet and converts it to like a web address. You can then use that web address to communicate from the front-end to back-end.
-
-You don't really need to use Ngrok if you're running the front-end and back-end on the same machine. Eg. after running the front-end server, open the web version vs using the Expo App on your iPad, but I haven't tried this so idk.
-
-Ngrok only runs for 2 hours in the free version, so you'll need to re-run the cmd, and change value of "NGROK_API" to the new web address they give you every 2 hours.
-
-Running Ngrok:
-
-In a terminal, run ngrok http 5000. This is because 5000 is the port that the backend will run from. Copy the ".io" address that the response gives you, and then paste that into the constant "NGROK_API" on the Front-End.
